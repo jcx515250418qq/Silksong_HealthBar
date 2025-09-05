@@ -20,7 +20,7 @@
 
 ## Screenshots | 截图
 
-![MOD Preview](暂时没上传)
+![MOD Preview](https://i.imgur.com/oNQM6Zy.png)
 *Preview of the mod in action | 模组效果预览*
 
 ## Configuration | 可配置项
