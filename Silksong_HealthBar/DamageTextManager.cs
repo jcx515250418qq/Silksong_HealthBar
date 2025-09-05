@@ -8,9 +8,9 @@ using BepInEx.Logging;
 
 namespace HealthbarPlugin
 {
-    /// <summary>
-    /// 伤害文本管理器 - 独立管理所有伤害文本的显示和动画
-    /// </summary>
+    
+   
+    
     public class DamageTextManager : MonoBehaviour
     {
         private static DamageTextManager _instance;
@@ -23,7 +23,7 @@ namespace HealthbarPlugin
                     // 创建DamageTextManager对象
                     GameObject managerObj = new GameObject("DamageTextManager");
                     _instance = managerObj.AddComponent<DamageTextManager>();
-                    DontDestroyOnLoad(managerObj); // 确保不会被销毁
+                    DontDestroyOnLoad(managerObj); 
                 }
                 return _instance;
             }
@@ -55,7 +55,7 @@ namespace HealthbarPlugin
         {
             try
             {
-                // 方法1: 查找所有字体
+                //  查找所有字体
                 Font[] allFonts = Resources.FindObjectsOfTypeAll<Font>();
                 damageFont = allFonts.FirstOrDefault(f => f.name.Contains("TrajanPro-Regular"));
 
@@ -84,11 +84,7 @@ namespace HealthbarPlugin
             }
         }
 
-        /// <summary>
-        /// 显示伤害文本
-        /// </summary>
-        /// <param name="worldPosition">世界坐标位置</param>
-        /// <param name="damage">伤害数值</param>
+      
         public void ShowDamageText(Vector2 worldPosition, float damage)
         {
             try
@@ -99,7 +95,7 @@ namespace HealthbarPlugin
                 canvas.renderMode = RenderMode.WorldSpace; // 使用世界空间模式
                 canvas.sortingOrder = 1000; // 确保显示在最前
 
-                // 添加随机位置偏移（在怪物上方1-2米的随机位置）
+                // 添加随机位置偏移
                 float randomX = UnityEngine.Random.Range(-0.5f, 0.5f);
                 float randomY = UnityEngine.Random.Range(1f, 2f);
                 Vector3 finalPosition = new Vector3(worldPosition.x + randomX, worldPosition.y + randomY, 0);
@@ -172,9 +168,6 @@ namespace HealthbarPlugin
             }
         }
 
-        /// <summary>
-        /// 动画协程 - 替代DOTween
-        /// </summary>
         private IEnumerator AnimateDamageText(GameObject damageTextCanvas, Text damageText)
         {
             Vector3 startPosition = damageTextCanvas.transform.position;
@@ -219,9 +212,9 @@ namespace HealthbarPlugin
             }
         }
 
-        /// <summary>
-        /// 定期清理伤害文本
-        /// </summary>
+        
+        // 定期清理伤害文本
+        
         private IEnumerator CleanupDamageTexts()
         {
             while (true)

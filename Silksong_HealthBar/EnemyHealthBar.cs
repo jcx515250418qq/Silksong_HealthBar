@@ -4,9 +4,7 @@ using System.Collections;
 
 namespace HealthbarPlugin
 {
-    /// <summary>
-    /// 敌人血条组件 - 负责血条显示功能
-    /// </summary>
+ 
     public class EnemyHealthBar : MonoBehaviour
     {
         // 血条设置
@@ -201,9 +199,7 @@ namespace HealthbarPlugin
             Canvas.ForceUpdateCanvases();
         }
         
-        /// <summary>
-        /// 记录最大血量（在受伤前调用）
-        /// </summary>
+       
         public void RecordMaxHealth(int hp)
         {
             if (!maxHpRecorded || hp > maxHpEverReached)
@@ -214,9 +210,7 @@ namespace HealthbarPlugin
             }
         }
         
-        /// <summary>
-        /// 触发血条显示（当怪物受到伤害时调用）
-        /// </summary>
+        
         public void OnDamageTaken()
         {
             // 只激活血条，不重复更新血量（Update()会处理）
