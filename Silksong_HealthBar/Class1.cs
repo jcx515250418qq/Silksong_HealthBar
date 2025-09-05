@@ -14,42 +14,35 @@ namespace HealthbarPlugin
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
     public class Plugin : BaseUnityPlugin
     {
-        // ===== 核心常量 =====
+       
         public const string PLUGIN_GUID = "com.Xiaohai.HealthbarAndDamageShow";
         public const string PLUGIN_NAME = "Healthbar&DamageShow";
         public const string PLUGIN_VERSION = "1.0.0";
 
-        // ===== 单例实例 =====
+       
         public static Plugin Instance { get; private set; }
 
-        // ===== 日志系统 =====
+       
         public static ManualLogSource logger;
 
-        // ===== 配置项 =====
-        // 显示开关
+        // 配置项 
+       
         public static ConfigEntry<bool> ShowHealthBar;
         public static ConfigEntry<bool> ShowDamageText;
 
-        // 伤害文本配置
+       
         public static ConfigEntry<float> DamageTextDuration;
         public static ConfigEntry<int> DamageTextFontSize;
         public static ConfigEntry<string> DamageTextColor;
         
 
-        // ===== 生命周期方法 =====
+      
         private void Awake()
         {
             logger = Logger;
-            // 1. 初始化单例
             Instance = this;
-
-            // 2. 初始化配置项
             InitializeConfig();
-
-            // 3. 日志初始化
             Logger.LogInfo($"Initializing {PLUGIN_NAME} v{PLUGIN_VERSION}");
-
-            // 4. Harmony 补丁
             new Harmony(PLUGIN_GUID).PatchAll();
         }
 
@@ -73,7 +66,7 @@ namespace HealthbarPlugin
         public static class HealthManager_Patch
         {
 
-            static int lastHp = -1;
+            static int lastHp = 0;
 
             [HarmonyPatch("Awake")]
             [HarmonyPostfix]
@@ -109,7 +102,7 @@ namespace HealthbarPlugin
 
                 // 计算实际伤害
                 var finalDamage = lastHp - __instance.hp;
-               
+               if(finalDamage == 0) return; // 没有实际伤害
 
                 // 检查玩家距离
                 var player = GameObject.FindFirstObjectByType<HeroController>();
