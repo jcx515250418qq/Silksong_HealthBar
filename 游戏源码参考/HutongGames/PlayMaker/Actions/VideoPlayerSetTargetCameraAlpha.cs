@@ -1,0 +1,65 @@
+using UnityEngine;
+using UnityEngine.Video;
+
+namespace HutongGames.PlayMaker.Actions
+{
+	[ActionCategory(ActionCategory.Video)]
+	[Tooltip("Set the Overall transparency level of the target camera plane video.")]
+	public class VideoPlayerSetTargetCameraAlpha : FsmStateAction
+	{
+		[RequiredField]
+		[CheckForComponent(typeof(VideoPlayer))]
+		[Tooltip("The GameObject with as VideoPlayer component.")]
+		public FsmOwnerDefault gameObject;
+
+		[RequiredField]
+		[Tooltip("The Overall transparency level")]
+		public FsmFloat alpha;
+
+		[Tooltip("Repeat every frame.")]
+		public bool everyFrame;
+
+		private GameObject go;
+
+		private VideoPlayer _vp;
+
+		public override void Reset()
+		{
+			gameObject = null;
+			alpha = null;
+			everyFrame = false;
+		}
+
+		public override void OnEnter()
+		{
+			GetVideoPlayer();
+			ExecuteAction();
+			if (!everyFrame)
+			{
+				Finish();
+			}
+		}
+
+		public override void OnUpdate()
+		{
+			ExecuteAction();
+		}
+
+		private void ExecuteAction()
+		{
+			if (_vp != null)
+			{
+				_vp.targetCameraAlpha = alpha.Value;
+			}
+		}
+
+		private void GetVideoPlayer()
+		{
+			go = base.Fsm.GetOwnerDefaultTarget(gameObject);
+			if (go != null)
+			{
+				_vp = go.GetComponent<VideoPlayer>();
+			}
+		}
+	}
+}

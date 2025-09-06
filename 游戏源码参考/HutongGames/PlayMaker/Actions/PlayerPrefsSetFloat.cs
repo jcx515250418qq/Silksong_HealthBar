@@ -1,0 +1,34 @@
+using UnityEngine;
+
+namespace HutongGames.PlayMaker.Actions
+{
+	[ActionCategory("PlayerPrefs")]
+	[Tooltip("Sets the value of the preference identified by key. Lets you save a float value that you can load later with {{PlayerPrefs Get Float}}.")]
+	public class PlayerPrefsSetFloat : FsmStateAction
+	{
+		[CompoundArray("Count", "Key", "Value")]
+		[Tooltip("Case sensitive key.")]
+		public FsmString[] keys;
+
+		[Tooltip("The value to save.")]
+		public FsmFloat[] values;
+
+		public override void Reset()
+		{
+			keys = new FsmString[1];
+			values = new FsmFloat[1];
+		}
+
+		public override void OnEnter()
+		{
+			for (int i = 0; i < keys.Length; i++)
+			{
+				if (!keys[i].IsNone || !keys[i].Value.Equals(""))
+				{
+					PlayerPrefs.SetFloat(keys[i].Value, values[i].IsNone ? 0f : values[i].Value);
+				}
+			}
+			Finish();
+		}
+	}
+}

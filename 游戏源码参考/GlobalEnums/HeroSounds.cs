@@ -1,0 +1,23 @@
+namespace GlobalEnums
+{
+	public enum HeroSounds
+	{
+		FOOTSTEPS_RUN = 0,
+		FOOTSTEPS_WALK = 1,
+		JUMP = 2,
+		WALLJUMP = 3,
+		SOFT_LANDING = 4,
+		HARD_LANDING = 5,
+		BACKDASH = 6,
+		DASH = 7,
+		TAKE_HIT = 8,
+		WALLSLIDE = 9,
+		NAIL_ART_CHARGE = 10,
+		NAIL_ART_READY = 11,
+		FALLING = 12,
+		FOOTSTEPS_SPRINT = 13,
+		UPDRAFT_IDLE = 14,
+		DASH_SILK = 15,
+		WINDY_IDLE = 16
+	}
+}

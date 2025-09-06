@@ -1,0 +1,30 @@
+namespace GlobalEnums
+{
+	public enum HeroActionButton
+	{
+		JUMP = 0,
+		ATTACK = 1,
+		DASH = 2,
+		SUPER_DASH = 3,
+		CAST = 4,
+		TAUNT = 5,
+		QUICK_MAP = 6,
+		INVENTORY = 7,
+		MENU_SUBMIT = 8,
+		MENU_CANCEL = 9,
+		DREAM_NAIL = 10,
+		UP = 11,
+		DOWN = 12,
+		LEFT = 13,
+		RIGHT = 14,
+		QUICK_CAST = 15,
+		MENU_PANE_LEFT = 16,
+		MENU_PANE_RIGHT = 17,
+		MENU_EXTRA = 18,
+		MENU_SUPER = 19,
+		INVENTORY_MAP = 20,
+		INVENTORY_JOURNAL = 21,
+		INVENTORY_TOOLS = 22,
+		INVENTORY_QUESTS = 23
+	}
+}

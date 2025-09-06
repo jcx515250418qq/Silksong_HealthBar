@@ -117,7 +117,15 @@ namespace HealthbarPlugin
                 textObj.transform.SetParent(damageTextCanvas.transform);
 
                 Text damageText = textObj.AddComponent<Text>();
-                damageText.text = damage > 0 ? $"- {damage}" : $"+ {damage}";
+                if (Plugin.DamageTextUseSign.Value)
+                {
+                    damageText.text = damage > 0 ? $"- {damage}" : $"+ {damage}";
+                }
+                else
+                {
+                    damageText.text = damage.ToString();
+                }
+                   
                 damageText.fontSize = Plugin.DamageTextFontSize.Value;
                 damageText.alignment = TextAnchor.MiddleCenter;
 
