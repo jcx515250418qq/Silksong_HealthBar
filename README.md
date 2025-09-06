@@ -1,5 +1,9 @@
 # ShowDamage&HealthBar MOD | 伤害显示&敌人血条模组
 
+## Video Tutorial | 视频教程 (Only Chinese)
+
+**B站视频教程**: https://www.bilibili.com/video/BV1kNaizqEFD
+
 ## Description | 简介
 
 **English**: A mod that displays enemy health bars and damage numbers when attacking enemies in the game. All features are fully configurable to suit your preferences.
@@ -54,6 +58,17 @@
   - Default: "#FF0000" | 默认值："#FF0000"
   - Description: Color for damage text (hex format) | 描述：伤害文本颜色（十六进制格式）
 
+### Health Bar Settings | 血条设置
+- **HealthBarFillColor** | 血条填充颜色
+  - Type: String | 类型：字符串
+  - Default: "#FF0000" | 默认值："#FF0000"
+  - Description: Color for health bar fill (hex format) | 描述：血条填充颜色（十六进制格式）
+
+- **HealthBarScale** | 血条大小倍数
+  - Type: Float | 类型：浮点数
+  - Default: 1.0 | 默认值：1.0
+  - Description: Scale multiplier for health bar size (e.g., 0.5 = half size, 2.0 = double size) | 描述：血条大小倍数（如0.5为缩小一半，2.0为放大一倍）
+
 
 ## Installation | 安装方法
 
@@ -82,6 +97,19 @@ The configuration file will be automatically generated after the first run. You 
 **Name | 姓名**: Xiaohai 小海  
 **Email | 邮箱**: 515250418@qq.com  
 **Bilibili | B站**: https://space.bilibili.com/2055787437
+
+## Changelog | 更新日志
+
+### Version 1.0.2
+- **New Feature**: Added configurable health bar fill color (HealthBarFillColor)
+- **New Feature**: Added configurable health bar scale multiplier (HealthBarScale)
+- **Enhancement**: Health bar appearance can now be customized through configuration
+- **新功能**: 添加了可配置的血条填充颜色 (HealthBarFillColor)
+- **新功能**: 添加了可配置的血条大小倍数 (HealthBarScale)
+- **改进**: 血条外观现在可以通过配置文件自定义
+### v1.0.1 
+-  **BUG** :修复了最大字体大小只能设置为50的bug。这个问题是由于Canvas大小设置得过小导致的。
+-  **BUG** :Fixed the bug where the maximum font size could only be set to 50. The issue was caused by the Canvas size being too small.
 
 ## Future Plans | 更新计划
 

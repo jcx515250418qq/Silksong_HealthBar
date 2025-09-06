@@ -17,7 +17,7 @@ namespace HealthbarPlugin
        
         public const string PLUGIN_GUID = "com.Xiaohai.HealthbarAndDamageShow";
         public const string PLUGIN_NAME = "Healthbar&DamageShow";
-        public const string PLUGIN_VERSION = "1.0.0";
+        public const string PLUGIN_VERSION = "1.0.2";
 
        
         public static Plugin Instance { get; private set; }
@@ -34,6 +34,10 @@ namespace HealthbarPlugin
         public static ConfigEntry<float> DamageTextDuration;
         public static ConfigEntry<int> DamageTextFontSize;
         public static ConfigEntry<string> DamageTextColor;
+        
+        // 血条配置
+        public static ConfigEntry<string> HealthBarFillColor;
+        public static ConfigEntry<float> HealthBarScale;
         
 
       
@@ -55,8 +59,11 @@ namespace HealthbarPlugin
             // 伤害文本配置
             DamageTextDuration = Config.Bind<float>("DamageText", "Duration", 3.0f, "伤害文本显示持续时间（秒）");
             DamageTextFontSize = Config.Bind<int>("DamageText", "FontSize", 35, "伤害文本字体大小");
-            DamageTextColor = Config.Bind<string>("DamageText", "DamageColor", "#FF0000", "伤害文本颜色（十六进制格式，如#FF0000为红色）");
-           
+            DamageTextColor = Config.Bind<string>("DamageText", "DamageColor", "#FF0000", "伤害文本颜色（十六进制格式，如#FF0000为红色） 颜色十六进制代码转换:http://pauli.cn/tool/color.htm");
+            
+            // 血条配置
+            HealthBarFillColor = Config.Bind<string>("HealthBar", "FillColor", "#2F4F4F", "血条填充颜色（十六进制格式，如#FF0000为红色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm");
+            HealthBarScale = Config.Bind<float>("HealthBar", "Scale", 3.0f, "血条大小倍数（如0.5为缩小一半，2.0为放大一倍）");
         }
     }
     [HarmonyPatch]
@@ -97,7 +104,7 @@ namespace HealthbarPlugin
             [HarmonyPostfix]
             public static void TakeDamage_Postfix(HealthManager __instance)
             {
-                if (!Plugin.ShowDamageText.Value) return;
+               
 
 
                 // 计算实际伤害
@@ -119,7 +126,8 @@ namespace HealthbarPlugin
                     healthBar.OnDamageTaken();
                 }
 
-
+                if (!Plugin.ShowDamageText.Value) return; // 检查是否启用伤害文本显示
+                // 显示伤害文本
                 Vector3 worldPosition = __instance.transform.position;
                 DamageTextManager.Instance.ShowDamageText(worldPosition, finalDamage);
 

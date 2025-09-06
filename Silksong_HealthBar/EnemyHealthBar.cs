@@ -8,7 +8,6 @@ namespace HealthbarPlugin
     public class EnemyHealthBar : MonoBehaviour
     {
         // 血条设置
-        public Color healthBarColor = Color.red;
         public Color healthBarBackgroundColor = Color.black;
         public Vector2 healthBarSize = new Vector2(100f, 10f);
         public Vector2 healthBarOffset = new Vector2(0f, 2f); // 2D偏移
@@ -109,7 +108,7 @@ namespace HealthbarPlugin
                 
                 RectTransform canvasRect = healthBarUI.GetComponent<RectTransform>();
                 canvasRect.sizeDelta = healthBarSize;
-                canvasRect.localScale = Vector3.one * 0.01f;
+                canvasRect.localScale = Vector3.one * 0.01f * Plugin.HealthBarScale.Value;
                 canvasRect.localPosition = new Vector3(healthBarOffset.x, healthBarOffset.y, 0);
                 
                 // 创建Slider血条
@@ -158,7 +157,19 @@ namespace HealthbarPlugin
                 fillObj.transform.SetParent(fillAreaObj.transform, false);
                 fillObj.AddComponent<CanvasRenderer>();
                 Image fillImage = fillObj.AddComponent<Image>();
-                fillImage.color = healthBarColor;
+                
+                // 使用配置项中的颜色
+                Color fillColor = Color.red; // 默认红色
+                if (ColorUtility.TryParseHtmlString(Plugin.HealthBarFillColor.Value, out Color parsedColor))
+                {
+                    fillColor = parsedColor;
+                }
+                else
+                {
+                    Plugin.logger.LogWarning($"EnemyHealthBar: 无法解析血条颜色 '{Plugin.HealthBarFillColor.Value}'，使用默认红色");
+                }
+                fillImage.color = fillColor;
+                
                 fillRect.anchorMin = Vector2.zero;
                 fillRect.anchorMax = Vector2.one;
                 fillRect.offsetMin = Vector2.zero;

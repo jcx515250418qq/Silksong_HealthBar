@@ -105,7 +105,10 @@ namespace HealthbarPlugin
 
                 // 设置Canvas RectTransform
                 RectTransform canvasRect = damageTextCanvas.GetComponent<RectTransform>();
-                canvasRect.sizeDelta = new Vector2(200, 50);
+                // 修改Canvas尺寸以适应大字体
+                float canvasWidth = Mathf.Max(200, Plugin.DamageTextFontSize.Value * 4);
+                float canvasHeight = Mathf.Max(50, Plugin.DamageTextFontSize.Value * 1.5f);
+                canvasRect.sizeDelta = new Vector2(canvasWidth, canvasHeight);
 
 
 
