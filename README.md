@@ -19,7 +19,7 @@
 2. **Damage Text Display**: Show damage numbers briefly when dealing damage to enemies
 3. **Health Numbers Display**: Show "Current HP/Max HP" text above health bars with customizable font size and color
 4. **Boss Health Bar**: Special health bar for high-health enemies with customizable threshold, colors, and positioning
-5. **In-Game GUI Configuration**: Press F1 to open configuration panel with real-time settings adjustment and bilingual support (Chinese/English)
+5. **In-Game GUI Configuration**: Press HOME to open configuration panel with real-time settings adjustment and bilingual support (Chinese/English)
 6. **Fully Configurable**: All features can be customized through configuration files or in-game GUI
 
 ### 中文
@@ -27,7 +27,7 @@
 2. **伤害文本显示**: 攻击敌人后，短暂地显示本次伤害值文本
 3. **血量数值显示**: 血条上方可显示"当前血量/最大血量"的数值文本，支持自定义字体大小和颜色
 4. **BOSS血条**: 针对高血量敌人的特殊血条，支持自定义阈值、颜色和位置
-5. **游戏内GUI配置**: 按F1打开配置面板，支持实时调整设置和中英文双语切换
+5. **游戏内GUI配置**: 按HOME打开配置面板，支持实时调整设置和中英文双语切换
 6. **完全可配置**: 所有功能都可以通过配置文件或游戏内GUI进行自定义
 
 ## Screenshots | 截图
@@ -37,6 +37,9 @@
 
 ![Health Numbers Display](https://i.imgur.com/MpMswya.jpeg)
 *BOSS feature | BOSS血条功能*
+
+![Imgur](https://imgur.com/xIu0fPA.png) 
+*Config GUI*
 
 
 ## Configuration | 可配置项
@@ -97,25 +100,19 @@ The configuration file will be automatically generated after the first run. You 
 **Email | 邮箱**: 515250418@qq.com  
 **Bilibili | B站**: https://space.bilibili.com/2055787437
 
-## Changelog | 更新日志
 
-### Version 1.0.6
-- **New Feature**: Added in-game GUI configuration panel (Press F1 to open)
-- **New Feature**: Real-time settings adjustment with instant health bar recreation
-- **New Feature**: Bilingual support (Chinese/English) with language switching buttons
-- **Enhancement**: All configuration options now available through intuitive GUI interface
-- **Enhancement**: Improved user experience with scrollable configuration panel
-- **新功能**: 新增游戏内GUI配置面板（按F1打开）
-- **新功能**: 实时设置调整，保存配置时立即重新创建血条
-- **新功能**: 中英文双语支持，可通过按钮切换界面语言
-- **改进**: 所有配置选项现在都可通过直观的GUI界面进行调整
-- **改进**: 改善用户体验，配置面板支持滚动显示
+## Changelog | 更新日志
 
 ### Version 1.0.5
 - **Major Fix**: Fixed multiple BOSS health bars overlapping issue with intelligent position management
 - **Enhancement**: Implemented BOSS health bar manager for automatic position calculation
+- **New Feature**: Added in-game GUI configuration panel (Press HOME to open)
+- **New Feature**: Real-time settings adjustment with instant health bar recreation
+- **Enhancement**: All configuration options now available through intuitive GUI interface
 - **重大修复**: 修复多个BOSS血条重叠问题，新增智能位置管理系统
 - **改进**: 实现BOSS血条管理器，自动计算位置排列
+- **新增**: 按HOME(可配置)可以打开菜单,实现实时动态调整配置项.
+
 
 ### Version 1.0.4
 - **Major Fix**: Fixed health bar remnant issues with triple protection mechanism
@@ -126,6 +123,7 @@ The configuration file will be automatically generated after the first run. You 
 - **新功能**: 新增BOSS血条，支持自定义阈值、颜色和位置
 - **新功能**: 新增NumbersInsideBar和NumbersVerticalOffset配置项
 - **改进**: 改善默认配置以更好匹配游戏风格
+
 
 ### Version 1.0.3
 - **New Feature**: Fixed health bar direction and added health numbers display
