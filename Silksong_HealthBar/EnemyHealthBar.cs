@@ -32,6 +32,10 @@ namespace HealthbarPlugin
         // 血条激活状态
         private bool healthBarActivated = false;
         
+        // 血量变化检测计时器
+        private float lastHealthChangeTime;
+        private int lastRecordedHp;
+        
         private void Start()
         {
             if(ColorUtility.TryParseHtmlString(Plugin.HealthBarFillColor.Value, out Color FillColor)) { healthBarColor = FillColor; }
@@ -48,13 +52,14 @@ namespace HealthbarPlugin
             }
             
             // 初始化血量数据
-            currentHp = healthManager.hp;
+            currentHp = healthManager.initHp;
             maxHpEverReached = currentHp;
+            lastRecordedHp = currentHp;
+            lastHealthChangeTime = Time.time;
 
-            if (BossSceneController.Instance!=null && BossSceneController.Instance.BossHealthLookup.ContainsKey(healthManager))
-            {
-                Plugin.logger.LogInfo($"EnemyHealthBar: 当前怪物类型是BOSS,名字是{healthManager.gameObject.name}");
-            }
+            Plugin.logger.LogInfo($"EnemyHealthBar: 创建普通敌人血条 (血量: {currentHp}) - {gameObject.name}");
+
+           
         }
         
         private void CreateHealthNumbersText()
@@ -90,7 +95,17 @@ namespace HealthbarPlugin
                 
                 // 添加Text组件
                 healthNumbersText = textObj.AddComponent<Text>();
-                healthNumbersText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                
+                // 使用统一字体
+                if (DamageTextManager.SharedFont != null)
+                {
+                    healthNumbersText.font = DamageTextManager.SharedFont;
+                }
+                else
+                {
+                    healthNumbersText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                }
+                
                 healthNumbersText.fontSize = fontSize;
                 
                 // 解析颜色配置
@@ -130,13 +145,21 @@ namespace HealthbarPlugin
         {
            
 
-            if (!base.gameObject.activeSelf || healthManager.hp<=0)
+            if (!base.gameObject.activeSelf || healthManager == null || healthManager.hp <= 0)
             {
-                healthBarUI?.gameObject.SetActive(false);
+                DestroyHealthBar();
+                return;
+            }
+            
+            // 检查Collision2D组件（添加空引用保护）
+            var collision2D = gameObject.GetComponentInChildren<Collision2D>();
+            if (collision2D != null && !collision2D.enabled)
+            {
+                DestroyHealthBar();
                 return;
             }
 
-            healthBarUI?.gameObject.SetActive(true);
+          
 
             if (healthManager == null || player == null) return;
             
@@ -146,6 +169,10 @@ namespace HealthbarPlugin
             {
                 int previousHp = currentHp;
                 currentHp = healthManager.hp;
+                
+                // 记录血量变化时间
+                lastHealthChangeTime = Time.time;
+                lastRecordedHp = currentHp;
                 
                 // 检测Boss阶段变化：如果血量大幅增加（可能是阶段重置），重新记录最大血量
                 if (currentHp > previousHp && (currentHp - previousHp) > (maxHpEverReached * 0.5f))
@@ -170,6 +197,18 @@ namespace HealthbarPlugin
                 UpdateHealthBarDisplay();
             }
             
+            // 检查血量是否在指定时间内没有变化，如果是则隐藏血条
+            if (healthBarActivated && healthBarUI != null && currentHp > 0)
+            {
+                float timeSinceLastChange = Time.time - lastHealthChangeTime;
+                if (timeSinceLastChange >= Plugin.HealthBarHideDelay.Value)
+                {
+                    // 血量在指定时间内没有变化，销毁血条
+                    DestroyHealthBar();
+                    return;
+                }
+            }
+            
             // 检查距离和血条显示
             if (healthBarActivated && healthBarUI != null)
             {
@@ -183,7 +222,8 @@ namespace HealthbarPlugin
                 // 更新血量文本Canvas位置（如果存在）
                 if (healthNumbersText != null && healthNumbersCanvas != null)
                 {
-                    Vector3 textWorldPos = transform.position + new Vector3(healthBarOffset.x, healthBarOffset.y + 0.3f, 0);
+                    float verticalOffset = Plugin.HealthBarNumbersVerticalOffset.Value;
+                    Vector3 textWorldPos = transform.position + new Vector3(healthBarOffset.x, healthBarOffset.y + verticalOffset, 0);
                     healthNumbersCanvas.transform.position = textWorldPos;
                     healthNumbersCanvas.transform.rotation = Quaternion.identity;
                 }
@@ -349,13 +389,68 @@ namespace HealthbarPlugin
         
         public void OnDamageTaken()
         {
+            // 记录受伤时间，重置计时器
+            lastHealthChangeTime = Time.time;
+            lastRecordedHp = healthManager.hp;
+            
             // 只激活血条，不重复更新血量（Update()会处理）
             if (!healthBarActivated)
             {
                 healthBarActivated = true;
                 CreateHealthBarUI();
-               
             }
+        }
+        
+        private void DestroyHealthBar()
+        {
+            // 销毁血条UI
+            if (healthBarUI != null)
+            {
+                Destroy(healthBarUI);
+                healthBarUI = null;
+                worldCanvas = null;
+                healthBarSlider = null;
+            }
+            
+            // 销毁血量文本Canvas
+            if (healthNumbersCanvas != null)
+            {
+                Destroy(healthNumbersCanvas);
+                healthNumbersCanvas = null;
+                healthNumbersText = null;
+            }
+            
+            // 重置血条激活状态，等待下次受击重新显示
+            healthBarActivated = false;
+            
+            
+        }
+        
+        /// <summary>
+        /// 销毁当前血条并重新创建（用于配置更新后的动态刷新）
+        /// </summary>
+        public void RecreateHealthBar()
+        {
+            // 记录当前激活状态
+            bool wasActivated = healthBarActivated;
+            
+            // 销毁现有血条
+            DestroyHealthBar();
+            
+            // 重新读取配置
+            if(ColorUtility.TryParseHtmlString(Plugin.HealthBarFillColor.Value, out Color fillColor)) 
+            { 
+                healthBarColor = fillColor; 
+            }
+            
+            // 如果之前血条是激活状态，重新创建血条
+            if (wasActivated && healthManager != null && healthManager.hp > 0)
+            {
+                healthBarActivated = true;
+                CreateHealthBarUI();
+            }
+            
+            Plugin.logger.LogInfo($"EnemyHealthBar: 重新创建血条完成 ({gameObject.name})");
         }
         
         private void OnDestroy()

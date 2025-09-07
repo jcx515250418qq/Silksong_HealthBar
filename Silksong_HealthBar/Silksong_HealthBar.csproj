@@ -66,6 +66,11 @@
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>D:\GAME\Hollow Knight Silksong\Hollow Knight Silksong_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.Physics2DModule">
+      <HintPath>D:\GAME\Hollow Knight Silksong\Hollow Knight Silksong_Data\Managed\UnityEngine.Physics2DModule.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>D:\GAME\Hollow Knight Silksong\Hollow Knight Silksong_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
@@ -79,10 +84,17 @@
       <HintPath>D:\GAME\Hollow Knight Silksong\Hollow Knight Silksong_Data\Managed\UnityEngine.UIModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>D:\GAME\Hollow Knight Silksong\Hollow Knight Silksong_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="ConfigGUI.cs" />
     <Compile Include="EnemyHealthBar.cs" />
+    <Compile Include="BossHealthBar.cs" />
+    <Compile Include="BossHealthBarManager.cs" />
     <Compile Include="DamageTextManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

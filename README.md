@@ -18,77 +18,54 @@
 1. **Enemy Health Bar**: Display health bars based on enemy health percentage after attacking. Health bars maintain fixed orientation (left to right) regardless of enemy facing direction
 2. **Damage Text Display**: Show damage numbers briefly when dealing damage to enemies
 3. **Health Numbers Display**: Show "Current HP/Max HP" text above health bars with customizable font size and color
-4. **Fully Configurable**: All features can be customized through configuration files
+4. **Boss Health Bar**: Special health bar for high-health enemies with customizable threshold, colors, and positioning
+5. **In-Game GUI Configuration**: Press F1 to open configuration panel with real-time settings adjustment and bilingual support (Chinese/English)
+6. **Fully Configurable**: All features can be customized through configuration files or in-game GUI
 
 ### 中文
 1. **敌人血条**: 攻击敌人后，显示基于敌人生命值百分比的血条，血条不受敌人翻转方向影响，始终保持固定方向（从左向右）
 2. **伤害文本显示**: 攻击敌人后，短暂地显示本次伤害值文本
 3. **血量数值显示**: 血条上方可显示"当前血量/最大血量"的数值文本，支持自定义字体大小和颜色
-4. **完全可配置**: 一切都是可以配置的
+4. **BOSS血条**: 针对高血量敌人的特殊血条，支持自定义阈值、颜色和位置
+5. **游戏内GUI配置**: 按F1打开配置面板，支持实时调整设置和中英文双语切换
+6. **完全可配置**: 所有功能都可以通过配置文件或游戏内GUI进行自定义
 
 ## Screenshots | 截图
 
-![MOD Preview](https://i.imgur.com/oNQM6Zy.png)
+![MOD Preview](https://i.imgur.com/ttFEuSe.png)
 *Preview of the mod in action | 模组效果预览*
 
-![Health Numbers Display](https://imgur.com/OKgdQm0)
-*Health numbers display feature | 血量数值显示功能*
+![Health Numbers Display](https://i.imgur.com/MpMswya.jpeg)
+*BOSS feature | BOSS血条功能*
+
 
 ## Configuration | 可配置项
 
 ### Display Settings | 显示设置
-- **ShowHealthBar** | 显示血条
-  - Type: Boolean | 类型：布尔值
-  - Default: true | 默认值：true
-  - Description: Enable/disable health bar display | 描述：启用/禁用血条显示
-
-- **ShowDamageText** | 显示伤害文本
-  - Type: Boolean | 类型：布尔值
-  - Default: true | 默认值：true
-  - Description: Enable/disable damage text display | 描述：启用/禁用伤害文本显示
+- **ShowHealthBar** | 显示血条 - `Boolean` (默认: `true`) - Enable/disable health bar display | 启用/禁用血条显示
+- **ShowDamageText** | 显示伤害文本 - `Boolean` (默认: `true`) - Enable/disable damage text display | 启用/禁用伤害文本显示
 
 ### Damage Text Settings | 伤害文本设置
-- **DamageTextDuration** | 伤害文本持续时间
-  - Type: Float | 类型：浮点数
-  - Default: 2.0 | 默认值：2.0
-  - Description: Duration in seconds for damage text display | 描述：伤害文本显示持续时间（秒）
-
-- **DamageTextFontSize** | 伤害文本字体大小
-  - Type: Integer | 类型：整数
-  - Default: 24 | 默认值：24
-  - Description: Font size for damage text | 描述：伤害文本的字体大小
-
-- **DamageTextColor** | 伤害文本颜色
-  - Type: String | 类型：字符串
-  - Default: "#FF0000" | 默认值："#FF0000"
-  - Description: Color for damage text (hex format) | 描述：伤害文本颜色（十六进制格式）
+- **DamageTextDuration** | 伤害文本持续时间 - `Float` (默认: `2.0`) - Duration in seconds for damage text display | 伤害文本显示持续时间（秒）
+- **DamageTextFontSize** | 伤害文本字体大小 - `Integer` (默认: `24`) - Font size for damage text | 伤害文本的字体大小
+- **DamageTextColor** | 伤害文本颜色 - `String` (默认: `"#FF0000"`) - Color for damage text (hex format) | 伤害文本颜色（十六进制格式）
 
 ### Health Bar Settings | 血条设置
-- **HealthBarFillColor** | 血条填充颜色
-  - Type: String | 类型：字符串
-  - Default: "#FF0000" | 默认值："#FF0000"
-  - Description: Color for health bar fill (hex format) | 描述：血条填充颜色（十六进制格式）
-
-- **HealthBarScale** | 血条大小倍数
-  - Type: Float | 类型：浮点数
-  - Default: 1.0 | 默认值：1.0
-  - Description: Scale multiplier for health bar size (e.g., 0.5 = half size, 2.0 = double size) | 描述：血条大小倍数（如0.5为缩小一半，2.0为放大一倍）
+- **HealthBarFillColor** | 血条填充颜色 - `String` (默认: `"#FF0000"`) - Color for health bar fill (hex format) | 血条填充颜色（十六进制格式）
+- **HealthBarScale** | 血条大小倍数 - `Float` (默认: `1.0`) - Scale multiplier for health bar size | 血条大小倍数（如0.5为缩小一半，2.0为放大一倍）
 
 ### Health Numbers Settings | 血量数值设置
-- **ShowHealthBarNumbers** | 显示血量数值
-  - Type: Boolean | 类型：布尔值
-  - Default: true | 默认值：true
-  - Description: Enable/disable health numbers display above health bars | 描述：启用/禁用血条上方的血量数值显示
+- **ShowHealthBarNumbers** | 显示血量数值 - `Boolean` (默认: `true`) - Enable/disable health numbers display above health bars | 启用/禁用血条上方的血量数值显示
+- **HealthBarNumbersFontSize** | 血量数值字体大小 - `Integer` (默认: `12`) - Font size for health numbers text | 血量数值文本的字体大小（受HealthBarScale影响）
+- **HealthBarNumbersColor** | 血量数值颜色 - `String` (默认: `"#FFFFFF"`) - Color for health numbers text (hex format) | 血量数值文本颜色（十六进制格式）
+- **NumbersInsideBar** | 数值文本显示在血条内部 - `Boolean` (默认: `false`) - Whether to display health numbers inside the health bar | 是否将血量数值显示在血条内部而不是上方
+- **NumbersVerticalOffset** | 数值文本垂直偏移 - `Float` (默认: `0.3`) - Vertical offset of health numbers relative to health bar | 血量数值文本相对于血条的上下偏移值（正值向上，负值向下）
 
-- **HealthBarNumbersFontSize** | 血量数值字体大小
-  - Type: Integer | 类型：整数
-  - Default: 12 | 默认值：12
-  - Description: Font size for health numbers text (affected by HealthBarScale) | 描述：血量数值文本的字体大小（受HealthBarScale影响）
-
-- **HealthBarNumbersColor** | 血量数值颜色
-  - Type: String | 类型：字符串
-  - Default: "#FFFFFF" | 默认值："#FFFFFF"
-  - Description: Color for health numbers text (hex format) | 描述：血量数值文本颜色（十六进制格式）
+### BOSS Health Bar Settings | BOSS血条设置
+- **BossHealthThreshold** | BOSS血量阈值 - `Float` (默认: `200.0`) - Health threshold to activate BOSS health bar | 激活BOSS血条的血量阈值
+- **BossHealthBarFillColor** | BOSS血条填充颜色 - `String` (默认: `"#FF4500"`) - Color for BOSS health bar fill (hex format) | BOSS血条填充颜色（十六进制格式）
+- **BossHealthBarBottomPosition** | BOSS血条显示在底部 - `Boolean` (默认: `false`) - Whether to display BOSS health bar at bottom of screen | 是否将BOSS血条显示在屏幕底部（false=顶部）
+- **BossHealthBarTextColor** | BOSS血条文本颜色 - `String` (默认: `"#FFFFFF"`) - Color for BOSS health bar text (hex format) | BOSS血条文本颜色（十六进制格式）
 
 ## Configuration File Location | 配置文件位置
 
@@ -122,36 +99,50 @@ The configuration file will be automatically generated after the first run. You 
 
 ## Changelog | 更新日志
 
+### Version 1.0.6
+- **New Feature**: Added in-game GUI configuration panel (Press F1 to open)
+- **New Feature**: Real-time settings adjustment with instant health bar recreation
+- **New Feature**: Bilingual support (Chinese/English) with language switching buttons
+- **Enhancement**: All configuration options now available through intuitive GUI interface
+- **Enhancement**: Improved user experience with scrollable configuration panel
+- **新功能**: 新增游戏内GUI配置面板（按F1打开）
+- **新功能**: 实时设置调整，保存配置时立即重新创建血条
+- **新功能**: 中英文双语支持，可通过按钮切换界面语言
+- **改进**: 所有配置选项现在都可通过直观的GUI界面进行调整
+- **改进**: 改善用户体验，配置面板支持滚动显示
+
+### Version 1.0.5
+- **Major Fix**: Fixed multiple BOSS health bars overlapping issue with intelligent position management
+- **Enhancement**: Implemented BOSS health bar manager for automatic position calculation
+- **重大修复**: 修复多个BOSS血条重叠问题，新增智能位置管理系统
+- **改进**: 实现BOSS血条管理器，自动计算位置排列
+
+### Version 1.0.4
+- **Major Fix**: Fixed health bar remnant issues with triple protection mechanism
+- **New Feature**: Added BOSS health bar with customizable threshold, colors, and positioning
+- **New Feature**: Added NumbersInsideBar and NumbersVerticalOffset configuration options
+- **Enhancement**: Improved default configuration to better match game aesthetics
+- **重大修复**: 修复血条残留问题，新增三重保护机制
+- **新功能**: 新增BOSS血条，支持自定义阈值、颜色和位置
+- **新功能**: 新增NumbersInsideBar和NumbersVerticalOffset配置项
+- **改进**: 改善默认配置以更好匹配游戏风格
+
 ### Version 1.0.3
-- **New Feature**: Health bars are no longer affected by enemy flip direction, always facing up and in a fixed direction (left to right)
-- **New Feature**: Added configurable "Current HP/Max HP" text display above health bars (ShowHealthBarNumbers)
-- **New Feature**: Added customizable font size for health numbers (HealthBarNumbersFontSize)
-- **New Feature**: Added customizable color for health numbers (HealthBarNumbersColor)
-- **Enhancement**: Dynamic Canvas sizing to prevent text display issues with large fonts
-- **Bug Fix**: Real-time enemy max health updates to prevent issues with boss phase transitions
-- **Bug Fix**: Health bars are properly destroyed when enemy health reaches 0 but enemy is not destroyed (fixes summoned creature health bar remnants)
-- **Note**: Boss phase fixes are not fully tested. If issues persist, please provide save files to 515254018@qq.com
-- **新功能**: 血条不再受敌人的翻转方向影响，始终朝上并且是固定方向的（从左向右）
-- **新功能**: 添加了可配置的"当前血量/最大血量"文本显示功能 (ShowHealthBarNumbers)
-- **新功能**: 添加了血量数值字体大小自定义功能 (HealthBarNumbersFontSize)
-- **新功能**: 添加了血量数值颜色自定义功能 (HealthBarNumbersColor)
-- **改进**: 动态Canvas大小设置，防止字体太大时不显示的问题
-- **修复**: 实时更新敌人最大血量，防止类似转阶段的情况敌人生命值暴增后导致的可能出现的BUG
-- **修复**: 当敌人生命值为0时，如果该敌人没有被销毁，生命条也会被销毁（尝试修复召唤物血量残留）
-- **注意**: 关于BOSS阶段修复功能未经完全测试，如有问题请提供存档文件至邮箱 515254018@qq.com
+- **New Feature**: Fixed health bar direction and added health numbers display
+- **Enhancement**: Dynamic Canvas sizing and real-time health updates
+- **Bug Fix**: Fixed health bar remnants and boss phase transition issues
+- **新功能**: 修复血条方向并新增血量数值显示
+- **改进**: 动态Canvas大小和实时血量更新
+- **修复**: 修复血条残留和BOSS阶段转换问题
 
 ### Version 1.0.2
-- **New Feature**: Added configurable health bar fill color (HealthBarFillColor)
-- **New Feature**: Added configurable health bar scale multiplier (HealthBarScale)
-- **Enhancement**: Health bar appearance can now be customized through configuration
-- **新功能**: 添加了可配置的血条填充颜色 (HealthBarFillColor)
-- **新功能**: 添加了可配置的血条大小倍数 (HealthBarScale)
-- **改进**: 血条外观现在可以通过配置文件自定义
+- **New Feature**: Added health bar color and scale customization
+- **Enhancement**: Improved health bar appearance configuration
+- **新功能**: 新增血条颜色和大小自定义
+- **改进**: 改善血条外观配置
 
 ### Version 1.0.1
-- **Bug Fix**: Fixed the bug where the maximum font size could only be set to 50. The issue was caused by the Canvas size being too small.
 - **Initial Release**: Basic enemy health bar and damage text display functionality
-- **修复**: 修复了最大字体大小只能设置为50的bug。这个问题是由于Canvas大小设置得过小导致的。
 - **初始版本**: 基本的敌人血条和伤害文本显示功能
 
 ## Future Plans | 更新计划
@@ -179,5 +170,18 @@ Currently, only core functionality has been implemented. Future updates will inc
 - 对MOD进行二次开发和引用
 - 任何商业用途或修改
 - 本说明的主要用途是敬告某些平台,不要再偷我MOD但是说是自己的了!这样只会打击模组开发者的热情!
+
+## 打赏 
+
+如果您喜欢这个MOD，可以考虑打赏支持开发者继续创作更多优质内容！
+
+
+
+### 微信 
+![WeChat QR Code](https://i.imgur.com/KBr7N6R.jpeg)
+
+### 支付宝  
+![Alipay QR Code](https://i.imgur.com/cNOl9jn.png)
+
 ---
 

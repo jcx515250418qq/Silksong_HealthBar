@@ -31,6 +31,15 @@ namespace HealthbarPlugin
 
         private List<GameObject> activeDamageTexts = new List<GameObject>();
         private Font damageFont;
+        
+        // 公共属性，供其他类访问统一字体
+        public static Font SharedFont
+        {
+            get
+            {
+                return Instance.damageFont;
+            }
+        }
 
         private void Awake()
         {
@@ -245,6 +254,31 @@ namespace HealthbarPlugin
             }
         }
 
+        /// <summary>
+        /// 清理所有当前显示的伤害文本（用于配置更新后的动态刷新）
+        /// </summary>
+        public void ClearAllDamageTexts()
+        {
+            try
+            {
+                // 清理所有伤害文本
+                foreach (var damageText in activeDamageTexts)
+                {
+                    if (damageText != null)
+                    {
+                        Destroy(damageText);
+                    }
+                }
+                activeDamageTexts.Clear();
+                
+                Plugin.logger.LogInfo("DamageTextManager: 已清理所有伤害文本");
+            }
+            catch (System.Exception e)
+            {
+                Plugin.logger.LogError($"DamageTextManager: 清理伤害文本时发生错误: {e.Message}");
+            }
+        }
+        
         private void OnDestroy()
         {
             // 清理所有伤害文本
