@@ -26,102 +26,52 @@ English: A mod that displays enemy health bars and damage numbers when attacking
 
 [size=5][b]Screenshots | 截图[/b][/size]
 
-[img]https://i.imgur.com/ttFEuSe.png[/img]
-[i]MOD Preview | 模组预览[/i]
+[img]https://i.postimg.cc/mDT0qqYS/1.png[/img]
+[i]Preview of the mod in action | 模组效果预览[/i]
 
-[img]https://i.imgur.com/F2v8sj6.png[/img]
-[i]Health numbers display feature | 血量数值显示功能[/i][b]
+[img]https://i.postimg.cc/8c097zqy/2.png[/img]
+[i]BOSS feature | BOSS血条功能[/i]
+
+[img]https://i.postimg.cc/bJLKjTLf/3.png[/img] [img]https://i.postimg.cc/fyL1W9gt/4.png[/img]
+[i]Config GUI[/i][b]
 [size=5]Configuration | 可配置项
 [/size][/b]
-[size=4][b]Display Settings | 显示设置
-[/b][/size]
-[b]- ShowHealthBar | 显示血条[/b]
-  - Type: Boolean | 类型：布尔值
-  - Default: true | 默认值：true
-  - Description: Enable/disable health bar display | 描述：启用/禁用血条显示
-[b]
-- ShowDamageText | 显示伤害文本[/b]
-  - Type: Boolean | 类型：布尔值
-  - Default: true | 默认值：true
-  - Description: Enable/disable damage text display | 描述：启用/禁用伤害文本显示
+[size=4][b]Display Settings | 显示设置[/b][/size]
+- [b]ShowHealthBar[/b] (Boolean, Default: true): 启用/禁用血条显示 | Enable/disable health bar display
+- [b]ShowDamageText[/b] (Boolean, Default: true): 启用/禁用伤害文本显示 | Enable/disable damage text display
+- [b]ConfigGUI_Hotkey[/b] (KeyCode, Default: Home): 配置面板热键 | Hotkey to toggle config GUI
 
-[size=4][b]Damage Text Settings | 伤害文本设置
-[/b][/size]
-[b]- DamageTextDuration | 伤害文本持续时间[/b]
-  - Type: Float | 类型：浮点数
-  - Default: 2.0 | 默认值：2.0
-  - Description: Duration in seconds for damage text display | 描述：伤害文本显示持续时间（秒）
+[size=4][b]Damage Text Settings | 伤害文本设置[/b][/size]
+- [b]DamageTextDuration[/b] (Float, Default: 2.0): 伤害文本显示持续时间（秒） | Damage text display duration (seconds)
+- [b]DamageTextFontSize[/b] (Integer, Default: 55): 伤害文本字体大小 | Damage text font size
+- [b]DamageTextColor[/b] (String, Default: "#DC143CFF"): 伤害文本颜色（十六进制格式） | Damage text color (hex format)
+- [b]DamageTextUseSign[/b] (Boolean, Default: true): 伤害文本是否显示符号(+/-) | Whether to show signs in damage text (+/-)
 
-[b]- DamageTextFontSize | 伤害文本字体大小[/b]
-  - Type: Integer | 类型：整数
-  - Default: 24 | 默认值：24
-  - Description: Font size for damage text | 描述：伤害文本的字体大小
+[size=4][b]Health Bar Settings | 血条设置[/b][/size]
+- [b]HealthBarFillColor[/b] (String, Default: "#beb8b8ff"): 血条填充颜色（十六进制格式） | Health bar fill color (hex format)
+- [b]HealthBarWidth[/b] (Float, Default: 165): 血条宽度（像素） | Health bar width (pixels)
+- [b]HealthBarHeight[/b] (Float, Default: 25): 血条高度（像素） | Health bar height (pixels)
+- [b]ShowHealthBarNumbers[/b] (Boolean, Default: true): 是否显示血量数值（当前HP/最大HP） | Whether to show health numbers (current HP / max HP)
+- [b]HealthBarNumbersFontSize[/b] (Integer, Default: 20): 血量数值文本字体大小 | Health numbers text font size
+- [b]HealthBarNumbersColor[/b] (String, Default: "#000000FF"): 血量数值文本颜色（十六进制格式） | Health numbers text color (hex format)
+- [b]HealthBarHideDelay[/b] (Float, Default: 1.5): 血条无变化后自动隐藏延迟时间（秒） | Auto-hide delay after no changes (seconds)
+- [b]HealthBarNumbersVerticalOffset[/b] (Float, Default: 0.25): 血量数值文本垂直偏移值 | Vertical offset of health numbers
+- [b]HealthBarNumbersInsideBar[/b] (Boolean, Default: true): 是否将血量数值显示在血条内部 | Whether to display health numbers inside the health bar
+- [b]HealthBarNumbersAutoWhiteOnLowHealth[/b] (Boolean, Default: true): 低血量时自动变白色文本 | Auto white text on low health
+- [b]HealthBarShape[/b] (Integer, Default: 2): 血条形状（1=长方形，2=圆角） | Health bar shape (1=Rectangle, 2=Rounded)
+- [b]HealthBarCornerRadius[/b] (Integer, Default: 5): 血条圆角半径（像素） | Health bar corner radius (pixels)
 
-[b]- DamageTextColor | 伤害文本颜色[/b]
-  - Type: String | 类型：字符串
-  - Default: "#FF0000" | 默认值："#FF0000"
-  - Description: Color for damage text (hex format) | 描述：伤害文本颜色（十六进制格式）
-[b]
-[size=4]Health Bar Settings | 血条设置
-[/size][/b]
-[b]- HealthBarFillColor | 血条填充颜色[/b]
-  - Type: String | 类型：字符串
-  - Default: "#FF0000" | 默认值："#FF0000"
-  - Description: Color for health bar fill (hex format) | 描述：血条填充颜色（十六进制格式）
-
-[b]- HealthBarScale | 血条大小倍数[/b]
-  - Type: Float | 类型：浮点数
-  - Default: 1.0 | 默认值：1.0
-  - Description: Scale multiplier for health bar size (e.g., 0.5 = half size, 2.0 = double size) | 描述：血条大小倍数（如0.5为缩小一半，2.0为放大一倍）
-
-[size=4][b]Health Numbers Settings | 血量数值设置
-[/b][/size]
-[b]- ShowHealthBarNumbers | 显示血量数值[/b]
-  - Type: Boolean | 类型：布尔值
-  - Default: true | 默认值：true
-  - Description: Enable/disable health numbers display above health bars | 描述：启用/禁用血条上方的血量数值显示
-
-[b]- HealthBarNumbersFontSize | 血量数值字体大小[/b]
-  - Type: Integer | 类型：整数
-  - Default: 12 | 默认值：12
-  - Description: Font size for health numbers text (affected by HealthBarScale) | 描述：血量数值文本的字体大小（受HealthBarScale影响）
-
-[b]- HealthBarNumbersColor | 血量数值颜色[/b]
-  - Type: String | 类型：字符串
-  - Default: "#FFFFFF" | 默认值："#FFFFFF"
-  - Description: Color for health numbers text (hex format) | 描述：血量数值文本颜色（十六进制格式）
-
-[b]- NumbersInsideBar | 数值文本显示在血条内部[/b]
-  - Type: Boolean | 类型：布尔值
-  - Default: false | 默认值：false
-  - Description: Whether to display health numbers inside the health bar instead of above it | 描述：是否将血量数值显示在血条内部而不是上方
-
-[b]- NumbersVerticalOffset | 数值文本垂直偏移[/b]
-  - Type: Float | 类型：浮点数
-  - Default: 0.3 | 默认值：0.3
-  - Description: Vertical offset of health numbers relative to health bar (positive up, negative down) | 描述：血量数值文本相对于血条的上下偏移值（正值向上，负值向下）
-
-[size=4][b]BOSS Health Bar Settings | BOSS血条设置
-[/b][/size]
-[b]- BossHealthThreshold | BOSS血量阈值[/b]
-  - Type: Float | 类型：浮点数
-  - Default: 200.0 | 默认值：200.0
-  - Description: Health threshold to activate BOSS health bar | 描述：激活BOSS血条的血量阈值
-
-[b]- BossHealthBarFillColor | BOSS血条填充颜色[/b]
-  - Type: String | 类型：字符串
-  - Default: "#FF4500" | 默认值："#FF4500"
-  - Description: Color for BOSS health bar fill (hex format) | 描述：BOSS血条填充颜色（十六进制格式）
-
-[b]- BossHealthBarBottomPosition | BOSS血条显示在底部[/b]
-  - Type: Boolean | 类型：布尔值
-  - Default: false | 默认值：false
-  - Description: Whether to display BOSS health bar at bottom of screen (false = top) | 描述：是否将BOSS血条显示在屏幕底部（false=顶部）
-
-[b]- BossHealthBarTextColor | BOSS血条文本颜色[/b]
-  - Type: String | 类型：字符串
-  - Default: "#FFFFFF" | 默认值："#FFFFFF"
-  - Description: Color for BOSS health bar text (hex format) | 描述：BOSS血条文本颜色（十六进制格式）
+[size=4][b]Boss Health Bar Settings | BOSS血条设置[/b][/size]
+- [b]BossHealthThreshold[/b] (Integer, Default: 105): BOSS血量阈值（超过此值显示BOSS血条） | Boss health threshold (show boss health bar when HP exceeds this)
+- [b]BossHealthBarFillColor[/b] (String, Default: "#beb8b8ff"): BOSS血条填充颜色（十六进制格式） | Boss health bar fill color (hex format)
+- [b]BossHealthBarWidth[/b] (Float, Default: 910): BOSS血条宽度（像素） | Boss health bar width (pixels)
+- [b]BossHealthBarHeight[/b] (Float, Default: 25): BOSS血条高度（像素） | Boss health bar height (pixels)
+- [b]BossHealthBarBottomPosition[/b] (Boolean, Default: true): BOSS血条位置（true=底部，false=顶部） | Boss health bar position (true=bottom, false=top)
+- [b]BossHealthBarNameColor[/b] (String, Default: "#beb8b8ff"): BOSS名字文本颜色（十六进制格式） | Boss name text color (hex format)
+- [b]BossMaxHealth[/b] (Float, Default: 3000): BOSS最大生命值上限（防止异常显示） | Boss maximum health limit (prevents abnormal display)
+- [b]BossHealthBarNumbersColor[/b] (String, Default: "#000000FF"): BOSS血量数值文本颜色（十六进制格式） | Boss health numbers text color (hex format)
+- [b]BossHealthBarShape[/b] (Integer, Default: 2): BOSS血条形状（1=长方形，2=圆角） | Boss health bar shape (1=Rectangle, 2=Rounded)
+- [b]BossHealthBarCornerRadius[/b] (Integer, Default: 15): BOSS血条圆角半径（像素） | Boss health bar corner radius (pixels)
 
 [size=4][url=http://www.66zan.cn/hexrgb/][i]不知道什么是颜色十六进制代码? What is Color Hex?  [/i][/url][/size]
   
@@ -151,6 +101,16 @@ Bilibili | B站: https://space.bilibili.com/2055787437
 
 [size=5][b]Changelog | 更新日志
 [/b][/size]
+[size=4][b]Version 1.0.6[/b][/size]
+[color=green][b]- New Feature[/b][/color]: Added monster health threshold protection to prevent abnormal display | [color=green][b]新功能[/b][/color]: 新增怪物血量上限阈值判断，防止异常显示
+[color=green][b]- New Feature[/b][/color]: Added customizable health bar width and height settings | [color=green][b]新功能[/b][/color]: 新增2种血条长宽自定义设置
+[color=green][b]- New Feature[/b][/color]: Added health bar rounded corner display toggle | [color=green][b]新功能[/b][/color]: 新增血条圆角显示切换功能
+[color=green][b]- New Feature[/b][/color]: Added low health automatic white text color setting | [color=green][b]新功能[/b][/color]: 新增低血量文本颜色切换设置
+[color=green][b]- New Feature[/b][/color]: Added "Reset to Defaults" button in configuration panel | [color=green][b]新功能[/b][/color]: 配置面板新增"恢复默认值"按钮
+[color=blue][b]- Enhancement[/b][/color]: Real-time settings adjustment with instant health bar recreation | [color=blue][b]改进[/b][/color]: 实时设置调整，即时血条重建
+[color=blue][b]- Enhancement[/b][/color]: Enhanced error handling and logging system | [color=blue][b]改进[/b][/color]: 增强的错误处理和日志记录系统
+[color=blue][b]- Enhancement[/b][/color]: Improved multilingual support in configuration interface | [color=blue][b]改进[/b][/color]: 改进的多语言支持
+
 [size=4][b]Version 1.0.5[/b][/size]
 [color=red][b]- Major Fix[/b][/color]: Fixed multiple BOSS health bars overlapping issue with intelligent position management | [color=red][b]重大修复[/b][/color]: 修复多个BOSS血条重叠问题，新增智能位置管理系统
 [color=blue][b]- Enhancement[/b][/color]: Implemented BOSS health bar manager for automatic position calculation | [color=blue][b]改进[/b][/color]: 实现BOSS血条管理器，自动计算位置排列
@@ -199,6 +159,16 @@ Currently, only core functionality has been implemented. Future updates will inc
 - 任何商业用途或修改
 - 本说明的主要用途是敬告某些平台,不要再偷我MOD但是说是自己的了!这样只会打击模组开发者的热情!
 
+[size=5][b]Just want to say | 有话要说[/b][/size]
+
+This will likely be the [b]last update[/b] for this mod in the near future(v1.0.6). Several major bugs have been fixed, and most styles now support customization — except for UI elements that rely on external resources. I've basically done everything possible with pure code.
+
+Next, I'll be moving on to developing other mods and finally taking the time to [b]actually play the game properly[/b]. I've barely had time to enjoy it lately.
+
+Thanks everyone for your support~
+Good luck and happy gaming! 🎮
+
+这应该是我该MOD最近最后一个版本(v1.0.6)更新了,几个重大的BUG都得到了修复.大部分的样式都支持自定义----除了引用外部资源的UI,基本我把纯代码能做到的都做到了.接下来我要去开发其他MOD以及认真地体验这款游戏了. 最近都没好好玩.感谢大家支持~祝好运!
 
 [size=6][b]打赏
 [img]https://i.imgur.com/KBr7N6R.jpeg[/img]
