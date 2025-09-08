@@ -10,6 +10,7 @@ using UnityEngine.EventSystems;
 using HutongGames.PlayMaker.Actions;
 using UnityEngine.Windows;
 using System.Linq;
+using System.Reflection;
 
 namespace HealthbarPlugin
 {
@@ -69,6 +70,10 @@ namespace HealthbarPlugin
         public static ConfigEntry<int> HealthBarCornerRadius;
         public static ConfigEntry<int> BossHealthBarCornerRadius;
         
+        // 自定义材质配置
+        public static ConfigEntry<bool> UseCustomTextures;
+        public static ConfigEntry<int> CustomTextureScaleMode;
+        
 
 
 
@@ -82,6 +87,9 @@ namespace HealthbarPlugin
 
             // 初始化配置GUI
             InitializeConfigGUI();
+            
+            // 初始化自定义材质管理器
+            CustomTextureManager.Initialize();
         }
 
         private void InitializeConfigGUI()
@@ -104,7 +112,8 @@ namespace HealthbarPlugin
         {
             // 清理纹理缓存，防止内存泄漏
             EnemyHealthBar.ClearTextureCache();
-            Logger.LogInfo("插件卸载，已清理纹理缓存");
+            CustomTextureManager.ClearCache();
+            Logger.LogInfo("插件卸载，已清理所有纹理缓存");
         }
 
         private void InitializeConfig()
@@ -150,6 +159,10 @@ namespace HealthbarPlugin
             HealthBarCornerRadius = Config.Bind<int>("HealthBar", "CornerRadius", 30, "敌人血条圆角半径（像素） / Enemy health bar corner radius (pixels)");
             BossHealthBarCornerRadius = Config.Bind<int>("BossHealthBar", "CornerRadius", 30, "BOSS血条圆角半径（像素） / Boss health bar corner radius (pixels)");
             
+            // 自定义材质配置 / Custom Texture Settings
+            UseCustomTextures = Config.Bind<bool>("CustomTexture", "Enabled", false, "是否启用自定义血条材质（从DLL目录/Texture/文件夹加载） / Enable custom health bar textures (load from DLL directory/Texture/ folder)");
+            CustomTextureScaleMode = Config.Bind<int>("CustomTexture", "ScaleMode", 1, "自定义材质缩放模式（1=拉伸适应，2=保持比例） / Custom texture scale mode (1=Stretch to fit, 2=Keep aspect ratio)");
+            
 
             if (HealthBarNumbersInsideBar.Value)
             {
@@ -167,7 +180,7 @@ namespace HealthbarPlugin
         public static class HealthManager_Patch
         {
 
-            static int lastHp = 0;
+            // 使用组件缓存方案替代字典，性能更优且自动清理
 
             [HarmonyPatch("Awake")]
             [HarmonyPostfix]
@@ -186,7 +199,7 @@ namespace HealthbarPlugin
                         if (__instance.gameObject.GetComponent<BossHealthBar>() == null)
                         {
                             __instance.gameObject.AddComponent<BossHealthBar>();
-                            // Plugin.logger.LogInfo($"为敌人 {__instance.gameObject.name} 挂载BOSS血条组件（血量: {__instance.hp}）");
+            
 
                         }
                     }
@@ -196,7 +209,7 @@ namespace HealthbarPlugin
                         if (__instance.gameObject.GetComponent<EnemyHealthBar>() == null)
                         {
                             __instance.gameObject.AddComponent<EnemyHealthBar>();
-                            // Plugin.logger.LogInfo($"为敌人 {__instance.gameObject.name} 挂载普通血条组件（血量: {__instance.hp}）");
+            
                         }
                     }
                 }
@@ -208,7 +221,13 @@ namespace HealthbarPlugin
             {
                 if (__instance.initHp > Plugin.BossMaxHealth.Value || __instance.hp > Plugin.BossMaxHealth.Value) return;
 
-                lastHp = __instance.hp;
+                // 获取或添加HealthTracker组件来记录血量
+                var healthTracker = __instance.GetComponent<HealthTracker>();
+                if (healthTracker == null)
+                {
+                    healthTracker = __instance.gameObject.AddComponent<HealthTracker>();
+                }
+                healthTracker.lastHp = __instance.hp;
 
                 // 记录最大血量（受伤前的血量）
                 var enemyHealthBar = __instance.gameObject.GetComponent<EnemyHealthBar>();
@@ -240,8 +259,17 @@ namespace HealthbarPlugin
 
 
                 // 计算实际伤害
-                var finalDamage = lastHp - __instance.hp;
+                var healthTracker = __instance.GetComponent<HealthTracker>();
+                if (healthTracker == null)
+                {
+                    // 如果没有组件，说明是第一次受伤，跳过
+                    return;
+                }
+                
+                var finalDamage = healthTracker.lastHp - __instance.hp;
                 if (finalDamage == 0) return; // 没有实际伤害
+                
+                // 组件会随对象销毁自动清理，无需手动管理
 
 
                 if (__instance.initHp >= Plugin.BossHealthThreshold.Value)
@@ -283,18 +311,272 @@ namespace HealthbarPlugin
                 // 显示伤害文本
                 Vector3 worldPosition = __instance.transform.position;
                 DamageTextManager.Instance.ShowDamageText(worldPosition, finalDamage);
-
-
-
-
-
-
-
-
-
             }
+        }
+    }
 
+    /// <summary>
+    /// 轻量级组件，用于缓存HealthManager的lastHp值
+    /// 性能优于字典方案，自动随对象销毁而清理
+    /// </summary>
+    public class HealthTracker : MonoBehaviour
+    {
+        public int lastHp = 0;
+    }
+    
+    /// <summary>
+    /// 自定义材质管理器，负责加载和缓存血条填充材质
+    /// </summary>
+    public static class CustomTextureManager
+    {
+        private static Dictionary<string, Sprite> textureCache = new Dictionary<string, Sprite>();
+        private static string textureFolderPath;
+        
+        // 材质文件名常量
+        private const string ENEMY_TEXTURE_NAME = "HpBar.png";
+        private const string BOSS_TEXTURE_NAME = "HpBar_Boss.png";
+        
+        /// <summary>
+        /// 初始化材质管理器，设置材质文件夹路径
+        /// </summary>
+        public static void Initialize()
+        {
+            try
+            {
+                // 获取DLL所在目录
+                string dllPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string dllDirectory = System.IO.Path.GetDirectoryName(dllPath);
+                textureFolderPath = System.IO.Path.Combine(dllDirectory, "Texture");
+                
+    
+                
+                // 检查文件夹是否存在
+                if (!System.IO.Directory.Exists(textureFolderPath))
+                {
+    
+                }
+            }
+            catch (System.Exception e)
+            {
+                Plugin.logger.LogError($"初始化自定义材质管理器失败: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 获取敌人血条填充材质
+        /// </summary>
+        /// <returns>成功返回Sprite，失败返回null</returns>
+        public static Sprite GetEnemyHealthBarTexture()
+        {
 
+            
+            if (!Plugin.UseCustomTextures.Value)
+            {
+
+                return null;
+            }
+                
+
+            return LoadTexture(ENEMY_TEXTURE_NAME);
+        }
+        
+        /// <summary>
+        /// 获取BOSS血条填充材质
+        /// </summary>
+        /// <returns>成功返回Sprite，失败返回null</returns>
+        public static Sprite GetBossHealthBarTexture()
+        {
+
+            
+            if (!Plugin.UseCustomTextures.Value)
+            {
+
+                return null;
+            }
+                
+
+            return LoadTexture(BOSS_TEXTURE_NAME);
+        }
+        
+        /// <summary>
+        /// 从文件加载材质并创建Sprite
+        /// </summary>
+        /// <param name="fileName">材质文件名</param>
+        /// <returns>成功返回Sprite，失败返回null</returns>
+        private static Sprite LoadTexture(string fileName)
+        {
+            try
+            {
+                // 检查缓存
+                if (textureCache.ContainsKey(fileName) && textureCache[fileName] != null)
+                {
+                    return textureCache[fileName];
+                }
+                
+                // 构建完整文件路径
+                string filePath = System.IO.Path.Combine(textureFolderPath, fileName);
+                
+                // 检查文件是否存在
+                if (!System.IO.File.Exists(filePath))
+                {
+    
+                    return null;
+                }
+                
+                // 读取文件数据
+                byte[] fileData = System.IO.File.ReadAllBytes(filePath);
+                
+                // 创建Texture2D并加载图像数据
+                Texture2D texture = new Texture2D(2, 2);
+                try
+                {
+                    // 使用兼容的方法加载图像数据
+                    // 尝试多种方法以确保兼容性
+                    bool success = false;
+                    
+                    // 方法1: 尝试使用ImageConversion（如果可用）
+                    try
+                    {
+                        var imageConversionType = System.Type.GetType("UnityEngine.ImageConversion, UnityEngine.ImageConversionModule");
+                        if (imageConversionType != null)
+                        {
+                            var loadImageMethod = imageConversionType.GetMethod("LoadImage", new[] { typeof(Texture2D), typeof(byte[]) });
+                            if (loadImageMethod != null)
+                            {
+                                success = (bool)loadImageMethod.Invoke(null, new object[] { texture, fileData });
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        success = false;
+                    }
+                    
+                    // 方法2: 如果ImageConversion不可用，尝试Texture2D.LoadImage
+                    if (!success)
+                    {
+                        try
+                        {
+                            var loadImageMethod = typeof(Texture2D).GetMethod("LoadImage", new[] { typeof(byte[]) });
+                            if (loadImageMethod != null)
+                            {
+                                success = (bool)loadImageMethod.Invoke(texture, new object[] { fileData });
+                            }
+                        }
+                        catch
+                        {
+                            success = false;
+                        }
+                    }
+                    
+                    if (!success)
+                    {
+                        Plugin.logger.LogError($"无法加载图像文件: {filePath} - 当前Unity版本不支持图像加载方法");
+                        UnityEngine.Object.DestroyImmediate(texture);
+                        return null;
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Plugin.logger.LogError($"加载图像时发生异常: {e.Message}");
+                    UnityEngine.Object.DestroyImmediate(texture);
+                    return null;
+                }
+                
+                // 设置材质属性
+                texture.filterMode = FilterMode.Bilinear;
+                texture.wrapMode = TextureWrapMode.Clamp;
+                
+                // 创建简单的Sprite，与默认血条处理方式一致
+                Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 100f);
+                
+                // 添加到缓存
+                textureCache[fileName] = sprite;
+                
+
+                return sprite;
+            }
+            catch (System.Exception e)
+            {
+                Plugin.logger.LogError($"加载自定义材质失败 {fileName}: {e.Message}");
+                return null;
+            }
+        }
+        
+        /// <summary>
+        /// 应用自定义材质到Image组件
+        /// </summary>
+        /// <param name="image">目标Image组件</param>
+        /// <param name="customSprite">自定义Sprite</param>
+        /// <param name="targetSize">目标尺寸（保留参数以保持兼容性）</param>
+        public static void ApplyCustomTexture(Image image, Sprite customSprite, Vector2 targetSize)
+        {
+            if (image == null || customSprite == null)
+                return;
+                
+            try
+            {
+                // 直接替换sprite
+                image.sprite = customSprite;
+                
+                // 设置为Simple类型
+                image.type = Image.Type.Simple;
+                
+                // 根据配置设置缩放模式
+                switch (Plugin.CustomTextureScaleMode.Value)
+                {
+                    case 1: // 拉伸适应
+                        image.preserveAspect = false;
+                        break;
+                        
+                    case 2: // 保持比例
+                        image.preserveAspect = true;
+                        break;
+                        
+                    default: // 默认拉伸适应
+                        image.preserveAspect = false;
+                        break;
+                }
+                
+    
+            }
+            catch (System.Exception e)
+            {
+                Plugin.logger.LogError($"应用自定义材质失败: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 清理所有缓存的材质
+        /// </summary>
+        public static void ClearCache()
+        {
+            try
+            {
+                foreach (var kvp in textureCache)
+                {
+                    if (kvp.Value != null && kvp.Value.texture != null)
+                    {
+                        UnityEngine.Object.Destroy(kvp.Value.texture);
+                        UnityEngine.Object.Destroy(kvp.Value);
+                    }
+                }
+                textureCache.Clear();
+    
+            }
+            catch (System.Exception e)
+            {
+                Plugin.logger.LogError($"清理自定义材质缓存失败: {e.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// 重新加载所有材质（用于配置更改后的刷新）
+        /// </summary>
+        public static void ReloadTextures()
+        {
+            ClearCache();
+            // 缓存会在下次调用GetEnemyHealthBarTexture或GetBossHealthBarTexture时重新加载
         }
     }
 }

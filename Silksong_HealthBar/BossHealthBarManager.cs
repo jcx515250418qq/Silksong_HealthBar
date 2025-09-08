@@ -30,7 +30,7 @@ namespace HealthbarPlugin
             if (!activeBossHealthBars.Contains(bossHealthBar))
             {
                 activeBossHealthBars.Add(bossHealthBar);
-                Plugin.logger.LogInfo($"BossHealthBarManager: 注册BOSS血条 {bossHealthBar.gameObject.name}，当前总数: {activeBossHealthBars.Count}");
+    
                 
                 // 重新计算所有血条位置
                 RecalculateAllPositions();
@@ -47,7 +47,7 @@ namespace HealthbarPlugin
             
             if (activeBossHealthBars.Remove(bossHealthBar))
             {
-                Plugin.logger.LogInfo($"BossHealthBarManager: 注销BOSS血条 {bossHealthBar.gameObject.name}，当前总数: {activeBossHealthBars.Count}");
+    
                 
                 // 重新计算剩余血条位置
                 RecalculateAllPositions();
@@ -169,7 +169,7 @@ namespace HealthbarPlugin
             
             if (activeBossHealthBars.Count > 1)
             {
-                Plugin.logger.LogInfo($"BossHealthBarManager: 重新计算了 {activeBossHealthBars.Count} 个BOSS血条的位置");
+    
             }
         }
         
@@ -190,7 +190,7 @@ namespace HealthbarPlugin
         public static void ClearAllBossHealthBars()
         {
             activeBossHealthBars.Clear();
-            Plugin.logger.LogInfo("BossHealthBarManager: 清理了所有BOSS血条引用");
+
         }
     }
 }

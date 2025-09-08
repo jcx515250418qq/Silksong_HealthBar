@@ -1,20 +1,61 @@
 # Changelog / 更新日志
 
-[size=5][b]Version 1.0.7 (紧急修复版)[/b][/size]
+## Version 1.0.9
 
-[size=4][b]Critical Performance Fix / 紧急性能修复[/b][/size]
+### New Features / 新功能
 
-1. [b]Rounded Corner Algorithm Optimization / 圆角算法优化[/b]
-   - [b][color=red]URGENT FIX[/color][/b]: Completely resolved severe frame drops (30-50 FPS loss) when displaying health bars with rounded corners
+1. **BOSS Health Bar Activation Mechanism / BOSS血条激活机制**
+   - BOSS health bars now only appear after the BOSS takes damage for the first time
+   - This prevents spoiling the presence of bosses before encounters begin
+   - Improves gameplay experience by maintaining surprise elements
+   - BOSS血条现在只有在BOSS首次受到伤害后才会显示
+   - 防止在战斗开始前剧透BOSS的存在
+   - 通过保持惊喜元素改善游戏体验
+
+---
+
+## Version 1.0.8
+
+### Major Update / 重大更新
+
+1. **Custom Texture Support / 自定义材质支持**
+   - Added support for custom health bar textures
+   - Load custom textures from DLL directory/Texture/ folder (HpBar.png for normal health bars, HpBar_Boss.png for boss health bars)
+   - Automatic fallback to default textures when custom textures are not available
+   - Configurable texture scaling modes: stretch to fit, maintain aspect ratio
+   - 新增自定义血条材质支持
+   - 从DLL目录/Texture/文件夹加载自定义材质（普通血条使用HpBar.png，BOSS血条使用HpBar_Boss.png）
+   - 当自定义材质不可用时自动回退到默认材质
+   - 可配置的材质缩放模式：拉伸适应、保持比例
+
+2. **Code Structure Optimization / 代码结构优化**
+   - Large-scale code refactoring for improved performance and maintainability
+   - Optimized texture loading and caching system
+   - Simplified material application logic
+   - Reduced memory allocation and improved runtime performance
+   - 大规模代码重构，提升性能和可维护性
+   - 优化材质加载和缓存系统
+   - 简化材质应用逻辑
+   - 减少内存分配，提升运行时性能
+
+
+---
+
+## Version 1.0.7 (紧急修复版)
+
+### Critical Performance Fix / 紧急性能修复
+
+1. **Rounded Corner Algorithm Optimization / 圆角算法优化**
+   - **URGENT FIX**: Completely resolved severe frame drops (30-50 FPS loss) when displaying health bars with rounded corners
    - Removed complex algorithm and redundant logging that caused performance bottlenecks
    - Optimized Update method calculations and distance checking algorithms
    - Cached frequently used components to avoid repeated parsing
-   - [b][color=red]紧急修复[/color][/b]: 彻底解决了显示圆角血条时严重掉帧(损失30-50帧)的问题
+   - **紧急修复**: 彻底解决了显示圆角血条时严重掉帧(损失30-50帧)的问题
    - 移除了导致性能瓶颈的复杂算法和冗余日志记录
    - 优化了Update方法计算和距离检查算法
    - 缓存常用组件避免重复解析
 
-2. [b]Alternative Solution / 备用解决方案[/b]
+2. **Alternative Solution / 备用解决方案**
    - If performance issues persist, press HOME key to switch to rectangular mode for complete resolution
    - Rectangular mode provides optimal performance with zero frame loss
    - 如果依然存在性能问题，按HOME键切换成长方形模式即可彻底解决

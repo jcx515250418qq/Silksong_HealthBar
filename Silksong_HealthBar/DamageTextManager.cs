@@ -82,7 +82,7 @@ namespace HealthbarPlugin
                 }
                 else
                 {
-                    Plugin.logger.LogInfo($"[DamageTextManager]:已加载字体{damageFont.name}");
+    
 
                 }
 
@@ -128,7 +128,8 @@ namespace HealthbarPlugin
                 Text damageText = textObj.AddComponent<Text>();
                 if (Plugin.DamageTextUseSign.Value)
                 {
-                    damageText.text = damage > 0 ? $"- {damage}" : $"+ {damage}";
+                    // 修复治疗显示格式：当damage为负数时，显示+绝对值而不是+-数字
+                    damageText.text = damage > 0 ? $"- {damage}" : $"+ {Mathf.Abs(damage)}";
                 }
                 else
                 {
@@ -271,7 +272,7 @@ namespace HealthbarPlugin
                 }
                 activeDamageTexts.Clear();
                 
-                Plugin.logger.LogInfo("DamageTextManager: 已清理所有伤害文本");
+    
             }
             catch (System.Exception e)
             {

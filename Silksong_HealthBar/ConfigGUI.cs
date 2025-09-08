@@ -98,6 +98,22 @@ namespace HealthbarPlugin
             {"boss_corner_radius_cn", "BOSS血条圆角半径"},
             {"boss_corner_radius_en", "Boss Health Bar Corner Radius"},
             
+            // 自定义材质
+            {"custom_texture_settings_cn", "=== 自定义材质配置 ==="},
+            {"custom_texture_settings_en", "=== Custom Texture Settings ==="},
+            {"use_custom_textures_cn", "启用自定义血条材质"},
+            {"use_custom_textures_en", "Enable Custom Health Bar Textures"},
+            {"custom_texture_scale_mode_cn", "材质缩放模式"},
+            {"custom_texture_scale_mode_en", "Texture Scale Mode"},
+            {"scale_mode_stretch_cn", "拉伸适应"},
+            {"scale_mode_stretch_en", "Stretch to Fit"},
+            {"scale_mode_aspect_cn", "保持比例"},
+            {"scale_mode_aspect_en", "Keep Aspect Ratio"},
+            {"reload_textures_cn", "重新加载材质"},
+            {"reload_textures_en", "Reload Textures"},
+            {"texture_path_info_cn", "材质路径: DLL目录/Texture/\nHpBar.png (敌人) | HpBar_Boss.png (BOSS)"},
+            {"texture_path_info_en", "Texture Path: DLL Directory/Texture/\nHpBar.png (Enemy) | HpBar_Boss.png (Boss)"},
+            
             // 性能优化
             {"performance_settings_cn", "=== 性能优化配置 ==="},
             {"performance_settings_en", "=== Performance Settings ==="},
@@ -264,7 +280,33 @@ namespace HealthbarPlugin
                 Plugin.BossHealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.BossHealthBarCornerRadius.Value, 5, 50);
             }
             
-
+            GUILayout.Space(10);
+            GUILayout.Label(GetText("custom_texture_settings"), GUI.skin.box);
+            
+            Plugin.UseCustomTextures.Value = GUILayout.Toggle(Plugin.UseCustomTextures.Value, GetText("use_custom_textures"));
+            
+            if (Plugin.UseCustomTextures.Value)
+            {
+                // 材质缩放模式选择
+                GUILayout.Label(GetText("custom_texture_scale_mode"));
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Toggle(Plugin.CustomTextureScaleMode.Value == 1, GetText("scale_mode_stretch")))
+                    Plugin.CustomTextureScaleMode.Value = 1;
+                if (GUILayout.Toggle(Plugin.CustomTextureScaleMode.Value == 2, GetText("scale_mode_aspect")))
+                    Plugin.CustomTextureScaleMode.Value = 2;
+                GUILayout.EndHorizontal();
+                
+                // 重新加载材质按钮
+                if (GUILayout.Button(GetText("reload_textures")))
+                {
+                    CustomTextureManager.ReloadTextures();
+                    RecreateAllHealthBars();
+    
+                }
+                
+                // 材质路径信息
+                GUILayout.Label(GetText("texture_path_info"), GUI.skin.textArea);
+            }
             
             GUILayout.EndScrollView();
             
@@ -284,7 +326,7 @@ namespace HealthbarPlugin
                 // 重新创建所有血条以应用新配置
                 RecreateAllHealthBars();
                 
-                Plugin.logger.LogInfo("配置已保存并刷新所有血条");
+
             }
             
             if (GUILayout.Button(GetText("reset_defaults")))
@@ -334,7 +376,7 @@ namespace HealthbarPlugin
                     }
                 }
                 
-                Plugin.logger.LogInfo($"重新创建了 {bossHealthBars.Length} 个Boss血条和 {enemyHealthBars.Length} 个敌人血条，并清理了所有伤害文本");
+
             }
             catch (System.Exception e)
             {
@@ -404,7 +446,7 @@ namespace HealthbarPlugin
                 // 重新创建所有血条以应用新配置
                 RecreateAllHealthBars();
                 
-                Plugin.logger.LogInfo("所有配置已恢复为默认值并刷新所有血条");
+
             }
             catch (System.Exception e)
             {

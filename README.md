@@ -19,16 +19,18 @@
 2. **Damage Text Display**: Show damage numbers briefly when dealing damage to enemies
 3. **Health Numbers Display**: Show "Current HP/Max HP" text above health bars with customizable font size and color
 4. **Boss Health Bar**: Special health bar for high-health enemies with customizable threshold, colors, and positioning
-5. **In-Game GUI Configuration**: Press HOME to open configuration panel with real-time settings adjustment and bilingual support (Chinese/English)
-6. **Fully Configurable**: All features can be customized through configuration files or in-game GUI
+5. **Custom Texture Support**: Support for custom health bar textures with automatic loading from DLL/Texture/ folder. Place HpBar.png for normal health bars and HpBar_Boss.png for boss health bars. Features configurable scaling modes and automatic fallback to default textures
+6. **In-Game GUI Configuration**: Press HOME to open configuration panel with real-time settings adjustment and bilingual support (Chinese/English)
+7. **Fully Configurable**: All features can be customized through configuration files or in-game GUI
 
 ### 中文
 1. **敌人血条**: 攻击敌人后，显示基于敌人生命值百分比的血条，血条不受敌人翻转方向影响，始终保持固定方向（从左向右）
 2. **伤害文本显示**: 攻击敌人后，短暂地显示本次伤害值文本
 3. **血量数值显示**: 血条上方可显示"当前血量/最大血量"的数值文本，支持自定义字体大小和颜色
 4. **BOSS血条**: 针对高血量敌人的特殊血条，支持自定义阈值、颜色和位置
-5. **游戏内GUI配置**: 按HOME打开配置面板，支持实时调整设置和中英文双语切换
-6. **完全可配置**: 所有功能都可以通过配置文件或游戏内GUI进行自定义
+5. **自定义材质支持**: 支持自定义血条材质，自动从DLL/Texture/文件夹加载。放置HpBar.png用于普通血条，HpBar_Boss.png用于BOSS血条。支持可配置的缩放模式和自动回退到默认材质
+6. **游戏内GUI配置**: 按HOME打开配置面板，支持实时调整设置和中英文双语切换
+7. **完全可配置**: 所有功能都可以通过配置文件或游戏内GUI进行自定义
 
 ## Screenshots | 截图
 
@@ -92,6 +94,20 @@
 | **BossHealthBarNumbersColor** | String | `"#000000FF"` | BOSS血量数值文本颜色（十六进制格式）<br>Boss health numbers text color (hex format) |
 | **BossHealthBarShape** | Integer | `2` | BOSS血条形状（1=长方形，2=圆角）<br>Boss health bar shape (1=Rectangle, 2=Rounded) |
 | **BossHealthBarCornerRadius** | Integer | `15` | BOSS血条圆角半径（像素）<br>Boss health bar corner radius (pixels) |
+
+### Custom Texture Settings | 自定义材质设置
+
+| 配置项 | 类型 | 默认值 | 说明 |
+|--------|------|--------|------|
+| **EnableCustomTexture** | Boolean | `true` | 启用/禁用自定义材质<br>Enable/disable custom texture |
+| **CustomTextureScalingMode** | Integer | `0` | 材质缩放模式（0=拉伸适应，1=保持比例）<br>Texture scaling mode (0=Stretch to fit, 1=Maintain aspect ratio) |
+
+**Custom Texture Usage | 自定义材质使用说明:**
+- Place custom texture files in the `DLL directory/Texture/` folder | 将自定义材质文件放置在`DLL目录/Texture/`文件夹中
+- Use `HpBar.png` for normal health bars | 使用`HpBar.png`作为普通血条材质
+- Use `HpBar_Boss.png` for boss health bars | 使用`HpBar_Boss.png`作为BOSS血条材质
+- Textures will automatically fallback to default if custom files are not found | 如果找不到自定义文件，将自动回退到默认材质
+- Recommended texture size: 256x64 pixels for optimal quality | 推荐材质尺寸：256x64像素以获得最佳质量
 
 ## Configuration File Location | 配置文件位置
 
