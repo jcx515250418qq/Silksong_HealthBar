@@ -1,20 +1,20 @@
 # Changelog / 更新日志
 
-## Version 1.0.7 (紧急修复版)
+[size=5][b]Version 1.0.7 (紧急修复版)[/b][/size]
 
-### Critical Performance Fix / 紧急性能修复
+[size=4][b]Critical Performance Fix / 紧急性能修复[/b][/size]
 
-1. **Rounded Corner Algorithm Optimization / 圆角算法优化**
-   - **URGENT FIX**: Completely resolved severe frame drops (30-50 FPS loss) when displaying health bars with rounded corners
+1. [b]Rounded Corner Algorithm Optimization / 圆角算法优化[/b]
+   - [b][color=red]URGENT FIX[/color][/b]: Completely resolved severe frame drops (30-50 FPS loss) when displaying health bars with rounded corners
    - Removed complex algorithm and redundant logging that caused performance bottlenecks
    - Optimized Update method calculations and distance checking algorithms
    - Cached frequently used components to avoid repeated parsing
-   - **紧急修复**: 彻底解决了显示圆角血条时严重掉帧(损失30-50帧)的问题
+   - [b][color=red]紧急修复[/color][/b]: 彻底解决了显示圆角血条时严重掉帧(损失30-50帧)的问题
    - 移除了导致性能瓶颈的复杂算法和冗余日志记录
    - 优化了Update方法计算和距离检查算法
    - 缓存常用组件避免重复解析
 
-2. **Alternative Solution / 备用解决方案**
+2. [b]Alternative Solution / 备用解决方案[/b]
    - If performance issues persist, press HOME key to switch to rectangular mode for complete resolution
    - Rectangular mode provides optimal performance with zero frame loss
    - 如果依然存在性能问题，按HOME键切换成长方形模式即可彻底解决
