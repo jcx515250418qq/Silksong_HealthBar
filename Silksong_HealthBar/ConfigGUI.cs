@@ -98,6 +98,12 @@ namespace HealthbarPlugin
             {"boss_corner_radius_cn", "BOSS血条圆角半径"},
             {"boss_corner_radius_en", "Boss Health Bar Corner Radius"},
             
+            // 性能优化
+            {"performance_settings_cn", "=== 性能优化配置 ==="},
+            {"performance_settings_en", "=== Performance Settings ==="},
+            {"use_simplified_corners_cn", "使用简化圆角算法（推荐）"},
+            {"use_simplified_corners_en", "Use Simplified Corner Algorithm (Recommended)"},
+            
             // 按钮
             {"save_config_cn", "保存配置"},
             {"save_config_en", "Save Config"},
@@ -258,6 +264,8 @@ namespace HealthbarPlugin
                 Plugin.BossHealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.BossHealthBarCornerRadius.Value, 5, 50);
             }
             
+
+            
             GUILayout.EndScrollView();
             
             GUILayout.Space(10);
@@ -381,6 +389,8 @@ namespace HealthbarPlugin
                 // 圆角半径配置
                 Plugin.HealthBarCornerRadius.Value = 5;
                 Plugin.BossHealthBarCornerRadius.Value = 15;
+                
+
                 
                 // 应用血量数字在血条内部的特殊设置
                 if (Plugin.HealthBarNumbersInsideBar.Value)

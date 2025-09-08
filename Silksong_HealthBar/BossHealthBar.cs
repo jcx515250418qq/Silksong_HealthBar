@@ -99,23 +99,22 @@ namespace HealthbarPlugin
                 
                 // 更新血条显示
                 UpdateBossHealthBarDisplay();
-                
-                Plugin.logger.LogDebug($"BossHealthBar: 血量变化 {previousHp} -> {currentHp} (怪物: {gameObject.name})");
             }
             
             // 检查玩家与BOSS的距离，决定血条显示/隐藏
             if (currentHp > 0)
             {
-                float distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+                // 使用平方距离比较避免开方运算
+                float sqrDistanceToPlayer = (transform.position - player.transform.position).sqrMagnitude;
+                const float showDistanceSqr = 20.0f * 20.0f; // 400
                 
-                // 如果玩家在5米内且血条未创建，创建血条
-                if (distanceToPlayer <= 20.0f && bossHealthBarUI == null)
+                // 如果玩家在范围内且血条未创建，创建血条
+                if (sqrDistanceToPlayer <= showDistanceSqr && bossHealthBarUI == null)
                 {
                     CreateBossHealthBarUI();
-    
                 }
-                // 如果玩家距离BOSS超过5米且血条存在，隐藏血条
-                else if (distanceToPlayer > 20.0f && bossHealthBarUI != null)
+                // 如果玩家距离BOSS超过范围且血条存在，隐藏血条
+                else if (sqrDistanceToPlayer > showDistanceSqr && bossHealthBarUI != null)
                 {
                     // 玩家离开BOSS区域，销毁血条
                     DestroyBossHealthBar();
@@ -130,62 +129,24 @@ namespace HealthbarPlugin
             
             try
             {
-                // 检查必要组件
-                if (healthManager == null)
-                {
-                    Plugin.logger.LogError("BossHealthBar: healthManager为null，无法创建UI");
-                    return;
-                }
-                
                 // 创建屏幕空间Canvas
                 bossHealthBarUI = new GameObject("BossHealthBarCanvas");
-                if (bossHealthBarUI == null)
-                {
-                    Plugin.logger.LogError("BossHealthBar: 无法创建Canvas GameObject");
-                    return;
-                }
-                
                 screenCanvas = bossHealthBarUI.AddComponent<Canvas>();
-                if (screenCanvas == null)
-                {
-                    Plugin.logger.LogError("BossHealthBar: 无法添加Canvas组件");
-                    Destroy(bossHealthBarUI);
-                    return;
-                }
                 
                 screenCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
                 screenCanvas.sortingOrder = 200; // 确保在最前面
                 
                 // 添加CanvasScaler组件
                 CanvasScaler canvasScaler = bossHealthBarUI.AddComponent<CanvasScaler>();
-                if (canvasScaler == null)
-                {
-                    Plugin.logger.LogError("BossHealthBar: 无法添加CanvasScaler组件");
-                    Destroy(bossHealthBarUI);
-                    return;
-                }
                 canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 canvasScaler.referenceResolution = new Vector2(1920, 1080);
                 
                 // 添加GraphicRaycaster
-                GraphicRaycaster raycaster = bossHealthBarUI.AddComponent<GraphicRaycaster>();
-                if (raycaster == null)
-                {
-                    Plugin.logger.LogError("BossHealthBar: 无法添加GraphicRaycaster组件");
-                    Destroy(bossHealthBarUI);
-                    return;
-                }
+                bossHealthBarUI.AddComponent<GraphicRaycaster>();
                 
 
                 
                 RectTransform canvasRect = bossHealthBarUI.GetComponent<RectTransform>();
-                if (canvasRect == null)
-                {
-                    Plugin.logger.LogError("BossHealthBar: 无法获取Canvas的RectTransform组件");
-                    Destroy(bossHealthBarUI);
-                    return;
-                }
-                
                 canvasRect.sizeDelta = Vector2.zero;
                 canvasRect.anchorMin = Vector2.zero;
                 canvasRect.anchorMax = Vector2.one;

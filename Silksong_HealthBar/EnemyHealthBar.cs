@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace HealthbarPlugin
 {
@@ -8,8 +9,9 @@ namespace HealthbarPlugin
     public class EnemyHealthBar : MonoBehaviour
     {
         // 血条设置
-        public Color healthBarColor =Color.red;
+        public Color healthBarColor = Color.red;
         public Color healthBarBackgroundColor = Color.black;
+        public Color healthBarNumbersColor = Color.white; // 缓存血量数值颜色
         public Vector2 healthBarSize = new Vector2(135f, 25f); // 默认大小
         public Vector2 healthBarOffset = new Vector2(0f, 2f); // 2D偏移
         
@@ -38,7 +40,16 @@ namespace HealthbarPlugin
         
         private void Start()
         {
-            if(ColorUtility.TryParseHtmlString(Plugin.HealthBarFillColor.Value, out Color FillColor)) { healthBarColor = FillColor; }
+            // 初始化颜色配置
+            if(ColorUtility.TryParseHtmlString(Plugin.HealthBarFillColor.Value, out Color fillColor)) 
+            { 
+                healthBarColor = fillColor; 
+            }
+            
+            if(ColorUtility.TryParseHtmlString(Plugin.HealthBarNumbersColor.Value, out Color numbersColor)) 
+            { 
+                healthBarNumbersColor = numbersColor; 
+            }
              
             // 初始化组件引用
             player = GameObject.FindFirstObjectByType<HeroController>();
@@ -46,7 +57,7 @@ namespace HealthbarPlugin
             
             if (healthManager == null)
             {
-                Plugin.logger.LogWarning($"EnemyHealthBar: 未找到HealthManager组件在 {gameObject.name}");
+                Plugin.logger.LogError($"EnemyHealthBar: 未找到HealthManager组件在 {gameObject.name}");
                 Destroy(this);
                 return;
             }
@@ -57,7 +68,7 @@ namespace HealthbarPlugin
             lastRecordedHp = currentHp;
             lastHealthChangeTime = Time.time;
 
-            Plugin.logger.LogInfo($"EnemyHealthBar: 创建普通敌人血条 (血量: {currentHp}) - {gameObject.name}");
+           
 
            
         }
@@ -108,16 +119,8 @@ namespace HealthbarPlugin
                 
                 healthNumbersText.fontSize = fontSize;
                 
-                // 解析颜色配置
-                if (ColorUtility.TryParseHtmlString(Plugin.HealthBarNumbersColor.Value, out Color textColor))
-                {
-                    healthNumbersText.color = textColor;
-                }
-                else
-                {
-                    healthNumbersText.color = Color.white; // 默认白色
-                    Plugin.logger.LogWarning($"EnemyHealthBar: 无法解析血量数值颜色配置 '{Plugin.HealthBarNumbersColor.Value}'，使用默认白色");
-                }
+                // 使用缓存的颜色配置
+                healthNumbersText.color = healthBarNumbersColor;
                 
                 healthNumbersText.alignment = TextAnchor.MiddleCenter;
                 healthNumbersText.fontStyle = FontStyle.Bold; // 使用加粗字体
@@ -144,25 +147,12 @@ namespace HealthbarPlugin
         
         private void Update()
         {
-           
-
-            if (!base.gameObject.activeSelf || healthManager == null || healthManager.hp <= 0)
+            // 基础状态检查
+            if (healthManager == null || healthManager.hp <= 0 || player == null)
             {
                 DestroyHealthBar();
                 return;
             }
-            
-            // 检查Collision2D组件（添加空引用保护）
-            var collision2D = gameObject.GetComponentInChildren<Collision2D>();
-            if (collision2D != null && !collision2D.enabled)
-            {
-                DestroyHealthBar();
-                return;
-            }
-
-          
-
-            if (healthManager == null || player == null) return;
             
 
             // 检查血量变化
@@ -183,7 +173,6 @@ namespace HealthbarPlugin
                     if (currentHp <= Plugin.BossMaxHealth.Value)
                     {
                         maxHpEverReached = currentHp;
-                        Plugin.logger.LogInfo($"EnemyHealthBar: 检测到Boss阶段变化，重新记录最大血量: {maxHpEverReached} (怪物: {gameObject.name})");
                     }
                 }
                 // 正常情况下，只在血量增加时更新最大血量记录
@@ -233,10 +222,9 @@ namespace HealthbarPlugin
                     healthNumbersCanvas.transform.rotation = Quaternion.identity;
                 }
                 
-                float distance = Vector2.Distance(new Vector2(transform.position.x, transform.position.y), 
-                                                new Vector2(player.transform.position.x, player.transform.position.y));
-                
-                bool shouldShow = distance <= maxDisplayDistance && currentHp > 0;
+                // 使用平方距离比较避免开方运算
+                float sqrDistance = (transform.position - player.transform.position).sqrMagnitude;
+                bool shouldShow = sqrDistance <= (maxDisplayDistance * maxDisplayDistance) && currentHp > 0;
                 healthBarUI.SetActive(shouldShow);
                 
                 // 同时控制血量文本的显示
@@ -361,25 +349,6 @@ namespace HealthbarPlugin
         {
             if (healthBarSlider == null) return;
             
-            // 检查血条尺寸是否需要更新
-            Vector2 newSize = new Vector2(Plugin.HealthBarWidth.Value, Plugin.HealthBarHeight.Value);
-            Vector2 currentCanvasSize = healthBarUI.GetComponent<RectTransform>().sizeDelta;
-            
-            if (currentCanvasSize != newSize)
-            {
-                // 更新Canvas尺寸
-                RectTransform canvasRect = healthBarUI.GetComponent<RectTransform>();
-                canvasRect.sizeDelta = newSize;
-                
-                // 重新应用血条形状
-                Image backgroundImage = healthBarSlider.targetGraphic as Image;
-                Image fillImage = healthBarSlider.fillRect.GetComponent<Image>();
-                if (backgroundImage != null && fillImage != null)
-                {
-                    ApplyHealthBarShape(backgroundImage, fillImage);
-                }
-            }
-            
             float healthPercentage = maxHpEverReached > 0 ? (float)currentHp / maxHpEverReached : 0f;
             
             // 使用Slider的value属性
@@ -401,14 +370,7 @@ namespace HealthbarPlugin
                     else
                     {
                         // 血量高于49%，使用配置的颜色
-                        if (ColorUtility.TryParseHtmlString(Plugin.HealthBarNumbersColor.Value, out Color textColor))
-                        {
-                            healthNumbersText.color = textColor;
-                        }
-                        else
-                        {
-                            healthNumbersText.color = Color.white; // 解析失败时使用白色
-                        }
+                        healthNumbersText.color = healthBarNumbersColor;
                     }
                 }
                 else
@@ -645,365 +607,221 @@ namespace HealthbarPlugin
         }
         
         /// <summary>
-        /// 创建纯色填充圆角纹理（无边框）
+        /// 创建纯填充圆角纹理（无边框）- 使用高性能算法
         /// </summary>
         private Texture2D CreatePureFillTexture(int width, int height, int cornerRadius)
         {
-            // 使用8倍分辨率来进一步减少锯齿
-            int highResWidth = width * 8;
-            int highResHeight = height * 8;
-            int highResCornerRadius = cornerRadius * 8;
+            // 生成缓存键
+            string cacheKey = $"fill_{width}_{height}_{cornerRadius}";
             
-            Texture2D highResTexture = new Texture2D(highResWidth, highResHeight, TextureFormat.RGBA32, false);
-            Color[] highResPixels = new Color[highResWidth * highResHeight];
-            
-            for (int y = 0; y < highResHeight; y++)
+            // 检查缓存
+            if (textureCache.ContainsKey(cacheKey) && textureCache[cacheKey] != null)
             {
-                for (int x = 0; x < highResWidth; x++)
-                {
-                    float alpha = 1.0f;
-                    
-                    // 只对左右两端应用圆角，上下保持直线
-                    if (x < highResCornerRadius) // 左端圆角
-                    {
-                        float centerY = highResHeight / 2f;
-                        float distanceFromCenter = Mathf.Abs(y - centerY);
-                        float maxDistance = highResHeight / 2f;
-                        
-                        float normalizedX = (float)(highResCornerRadius - x) / highResCornerRadius;
-                        float normalizedY = distanceFromCenter / maxDistance;
-                        
-                        float distance = normalizedX * normalizedX + normalizedY * normalizedY;
-                        
-                        if (distance > 1.0f)
-                        {
-                            alpha = 0.0f;
-                        }
-                        else if (distance > 0.9f)
-                        {
-                            alpha = 1.0f - (distance - 0.9f) / 0.1f;
-                            alpha = Mathf.SmoothStep(0f, 1f, alpha);
-                        }
-                    }
-                    else if (x >= highResWidth - highResCornerRadius) // 右端圆角
-                    {
-                        float centerY = highResHeight / 2f;
-                        float distanceFromCenter = Mathf.Abs(y - centerY);
-                        float maxDistance = highResHeight / 2f;
-                        
-                        float normalizedX = (float)(x - (highResWidth - highResCornerRadius)) / highResCornerRadius;
-                        float normalizedY = distanceFromCenter / maxDistance;
-                        
-                        float distance = normalizedX * normalizedX + normalizedY * normalizedY;
-                        
-                        if (distance > 1.0f)
-                        {
-                            alpha = 0.0f;
-                        }
-                        else if (distance > 0.9f)
-                        {
-                            alpha = 1.0f - (distance - 0.9f) / 0.1f;
-                            alpha = Mathf.SmoothStep(0f, 1f, alpha);
-                        }
-                    }
-                    
-                    // 设置纯白色
-                    highResPixels[y * highResWidth + x] = new Color(1f, 1f, 1f, alpha);
-                }
+                return textureCache[cacheKey];
             }
             
-            highResTexture.SetPixels(highResPixels);
-            highResTexture.Apply();
-            
-            // 缩放到目标尺寸
-            Texture2D finalTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            Color[] finalPixels = new Color[width * height];
-            
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    // 超采样抗锯齿
-                    float totalAlpha = 0f;
-                    int sampleCount = 4;
-                    
-                    for (int sy = 0; sy < sampleCount; sy++)
-                    {
-                        for (int sx = 0; sx < sampleCount; sx++)
-                        {
-                            float sampleX = (x + (sx + 0.5f) / sampleCount) * 8f;
-                            float sampleY = (y + (sy + 0.5f) / sampleCount) * 8f;
-                            
-                            int highResX = Mathf.Clamp(Mathf.RoundToInt(sampleX), 0, highResWidth - 1);
-                            int highResY = Mathf.Clamp(Mathf.RoundToInt(sampleY), 0, highResHeight - 1);
-                            
-                            totalAlpha += highResPixels[highResY * highResWidth + highResX].a;
-                        }
-                    }
-                    
-                    float avgAlpha = totalAlpha / (sampleCount * sampleCount);
-                    finalPixels[y * width + x] = new Color(1f, 1f, 1f, avgAlpha);
-                }
-            }
-            
-            finalTexture.SetPixels(finalPixels);
-            finalTexture.Apply();
-            
-            UnityEngine.Object.DestroyImmediate(highResTexture);
-            return finalTexture;
+            return CreateSimpleFillTexture(width, height, cornerRadius, cacheKey);
         }
         
         /// <summary>
-        /// 创建圆角纹理（带黑色边框）- 完全参考BOSS血条逻辑
+        /// 创建纯填充圆角纹理，高性能算法
         /// </summary>
-        private Texture2D CreateRoundedTexture(int width, int height, int cornerRadius)
+        private Texture2D CreateSimpleFillTexture(int width, int height, int cornerRadius, string cacheKey)
         {
-            // 使用8倍分辨率来进一步减少锯齿
-            int highResWidth = width * 32;
-            int highResHeight = height * 32;
-            int highResCornerRadius = cornerRadius * 32;
-            int borderWidth = 64; // 边框宽度（高分辨率下），与BOSS血条保持一致
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Color[] pixels = new Color[width * height];
             
-            Texture2D highResTexture = new Texture2D(highResWidth, highResHeight, TextureFormat.RGBA32, false);
-            Color[] highResPixels = new Color[highResWidth * highResHeight];
-            
-            for (int y = 0; y < highResHeight; y++)
-            {
-                for (int x = 0; x < highResWidth; x++)
-                {
-                    float alpha = 1.0f;
-                    bool isInBorder = false;
-                    
-                    // 只对左右两端应用圆角，上下保持直线（与BOSS血条一致）
-                    if (x < highResCornerRadius) // 左端圆角
-                    {
-                        float centerY = highResHeight / 2f;
-                        float distanceFromCenter = Mathf.Abs(y - centerY);
-                        float maxDistance = highResHeight / 2f;
-                        
-                        // 使用更精确的椭圆计算
-                        float normalizedX = (float)(highResCornerRadius - x) / highResCornerRadius;
-                        float normalizedY = distanceFromCenter / maxDistance;
-                        
-                        float distance = normalizedX * normalizedX + normalizedY * normalizedY;
-                        
-                        // 更精细的抗锯齿处理
-                        if (distance > 1.0f)
-                        {
-                            alpha = 0.0f;
-                        }
-                        else if (distance > 0.9f)
-                        {
-                            // 更宽的边缘平滑过渡区域
-                            alpha = 1.0f - (distance - 0.9f) / 0.1f;
-                            alpha = Mathf.SmoothStep(0f, 1f, alpha); // 使用平滑插值
-                        }
-                        else
-                        {
-                            // 在有效区域内，检查是否在边框区域
-                            // 简化边框检查：直接检查距离边缘的像素距离
-                            if (x < borderWidth || distanceFromCenter > maxDistance - borderWidth)
-                            {
-                                isInBorder = true;
-                            }
-                            else
-                            {
-                                // 对于圆角区域，检查是否接近外边缘
-                                float innerRadius = highResCornerRadius - borderWidth;
-                                if (innerRadius > 0)
-                                {
-                                    float innerNormalizedX = (float)(highResCornerRadius - borderWidth - x) / innerRadius;
-                                    float innerNormalizedY = distanceFromCenter / (maxDistance - borderWidth);
-                                    float innerDistance = innerNormalizedX * innerNormalizedX + innerNormalizedY * innerNormalizedY;
-                                    if (innerDistance > 1.0f)
-                                    {
-                                        isInBorder = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (x >= highResWidth - highResCornerRadius) // 右端圆角
-                    {
-                        float centerY = highResHeight / 2f;
-                        float distanceFromCenter = Mathf.Abs(y - centerY);
-                        float maxDistance = highResHeight / 2f;
-                        
-                        float normalizedX = (float)(x - (highResWidth - highResCornerRadius)) / highResCornerRadius;
-                        float normalizedY = distanceFromCenter / maxDistance;
-                        
-                        float distance = normalizedX * normalizedX + normalizedY * normalizedY;
-                        
-                        // 更精细的抗锯齿处理
-                        if (distance > 1.0f)
-                        {
-                            alpha = 0.0f;
-                        }
-                        else if (distance > 0.9f)
-                        {
-                            alpha = 1.0f - (distance - 0.9f) / 0.1f;
-                            alpha = Mathf.SmoothStep(0f, 1f, alpha);
-                        }
-                        else
-                        {
-                            // 在有效区域内，检查是否在边框区域
-                            // 简化边框检查：直接检查距离边缘的像素距离
-                            if (x >= highResWidth - borderWidth || distanceFromCenter > maxDistance - borderWidth)
-                            {
-                                isInBorder = true;
-                            }
-                            else
-                            {
-                                // 对于圆角区域，检查是否接近外边缘
-                                float innerRadius = highResCornerRadius - borderWidth;
-                                if (innerRadius > 0)
-                                {
-                                    float innerNormalizedX = (float)(x - (highResWidth - innerRadius)) / innerRadius;
-                                    float innerNormalizedY = distanceFromCenter / (maxDistance - borderWidth);
-                                    float innerDistance = innerNormalizedX * innerNormalizedX + innerNormalizedY * innerNormalizedY;
-                                    if (innerDistance > 1.0f)
-                                    {
-                                        isInBorder = true;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // 中间区域的上下边框
-                        if (y < borderWidth || y >= highResHeight - borderWidth)
-                        {
-                            isInBorder = true;
-                        }
-                    }
-                    
-                    // 设置颜色：边框为黑色，内部为白色
-                    if (alpha > 0)
-                    {
-                        if (isInBorder)
-                        {
-                            highResPixels[y * highResWidth + x] = new Color(0f, 0f, 0f, alpha); // 黑色边框
-                        }
-                        else
-                        {
-                            highResPixels[y * highResWidth + x] = new Color(1f, 1f, 1f, alpha); // 白色内部
-                        }
-                    }
-                    else
-                    {
-                        highResPixels[y * highResWidth + x] = new Color(1f, 1f, 1f, alpha); // 透明区域
-                    }
-                }
-            }
-            
-            highResTexture.SetPixels(highResPixels);
-            highResTexture.Apply();
-            
-            // 使用更高质量的缩放算法（与BOSS血条一致）
-            Texture2D finalTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            Color[] finalPixels = new Color[width * height];
+            // 预计算圆角区域
+            float radiusF = cornerRadius;
             
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // 超采样抗锯齿：对每个像素采样多个点
-                    float totalAlpha = 0f;
-                    int sampleCount = 4; // 2x2超采样
+                    bool isVisible = true;
                     
-                    for (int sy = 0; sy < sampleCount; sy++)
+                    // 简化的圆角检查：只检查四个角
+                    if ((x < cornerRadius && y < cornerRadius) || // 左上角
+                        (x >= width - cornerRadius && y < cornerRadius) || // 右上角
+                        (x < cornerRadius && y >= height - cornerRadius) || // 左下角
+                        (x >= width - cornerRadius && y >= height - cornerRadius)) // 右下角
                     {
-                        for (int sx = 0; sx < sampleCount; sx++)
+                        float centerX, centerY;
+                        if (x < cornerRadius && y < cornerRadius) // 左上角
                         {
-                            float srcX = ((float)x + (sx + 0.5f) / sampleCount) / width * highResWidth;
-                            float srcY = ((float)y + (sy + 0.5f) / sampleCount) / height * highResHeight;
-                            
-                            int x1 = Mathf.FloorToInt(srcX);
-                            int y1 = Mathf.FloorToInt(srcY);
-                            int x2 = Mathf.Min(x1 + 1, highResWidth - 1);
-                            int y2 = Mathf.Min(y1 + 1, highResHeight - 1);
-                            
-                            float fx = srcX - x1;
-                            float fy = srcY - y1;
-                            
-                            Color c1 = highResPixels[y1 * highResWidth + x1];
-                            Color c2 = highResPixels[y1 * highResWidth + x2];
-                            Color c3 = highResPixels[y2 * highResWidth + x1];
-                            Color c4 = highResPixels[y2 * highResWidth + x2];
-                            
-                            Color top = Color.Lerp(c1, c2, fx);
-                            Color bottom = Color.Lerp(c3, c4, fx);
-                            Color sample = Color.Lerp(top, bottom, fy);
-                            
-                            totalAlpha += sample.a;
+                            centerX = cornerRadius;
+                            centerY = cornerRadius;
+                        }
+                        else if (x >= width - cornerRadius && y < cornerRadius) // 右上角
+                        {
+                            centerX = width - cornerRadius;
+                            centerY = cornerRadius;
+                        }
+                        else if (x < cornerRadius && y >= height - cornerRadius) // 左下角
+                        {
+                            centerX = cornerRadius;
+                            centerY = height - cornerRadius;
+                        }
+                        else // 右下角
+                        {
+                            centerX = width - cornerRadius;
+                            centerY = height - cornerRadius;
+                        }
+                        
+                        float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+                        
+                        if (distance > radiusF)
+                        {
+                            isVisible = false;
                         }
                     }
                     
-                    float avgAlpha = totalAlpha / (sampleCount * sampleCount);
-                    
-                    // 根据平均透明度确定最终颜色
-                     if (avgAlpha > 0.5f)
-                     {
-                         // 采样区域主要是不透明的，检查是否为边框
-                         Color borderColor = Color.clear;
-                         Color fillColor = Color.clear;
-                         int borderSamples = 0;
-                         int fillSamples = 0;
-                        
-                        for (int sy = 0; sy < sampleCount; sy++)
-                        {
-                            for (int sx = 0; sx < sampleCount; sx++)
-                            {
-                                float srcX = ((float)x + (sx + 0.5f) / sampleCount) / width * highResWidth;
-                                float srcY = ((float)y + (sy + 0.5f) / sampleCount) / height * highResHeight;
-                                
-                                int sampleX = Mathf.RoundToInt(srcX);
-                                int sampleY = Mathf.RoundToInt(srcY);
-                                
-                                if (sampleX >= 0 && sampleX < highResWidth && sampleY >= 0 && sampleY < highResHeight)
-                                {
-                                    Color sampleColor = highResPixels[sampleY * highResWidth + sampleX];
-                                    if (sampleColor.a > 0)
-                                    {
-                                        if (sampleColor.r > 0.5f && sampleColor.g < 0.5f && sampleColor.b < 0.5f) // 红色边框
-                                        {
-                                            borderColor += sampleColor;
-                                            borderSamples++;
-                                        }
-                                        else // 白色填充
-                                        {
-                                            fillColor += sampleColor;
-                                            fillSamples++;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        if (borderSamples > fillSamples)
-                        {
-                            finalPixels[y * width + x] = borderSamples > 0 ? borderColor / borderSamples : new Color(0f, 0f, 0f, avgAlpha);
-                        }
-                        else
-                        {
-                            finalPixels[y * width + x] = fillSamples > 0 ? fillColor / fillSamples : new Color(1f, 1f, 1f, avgAlpha);
-                        }
+                    if (isVisible)
+                    {
+                        pixels[y * width + x] = Color.white;
                     }
                     else
                     {
-                        finalPixels[y * width + x] = new Color(1f, 1f, 1f, avgAlpha);
+                        pixels[y * width + x] = Color.clear;
                     }
                 }
             }
             
-            finalTexture.SetPixels(finalPixels);
-            finalTexture.Apply();
+            texture.SetPixels(pixels);
+            texture.Apply();
             
-            // 清理高分辨率纹理
-            Destroy(highResTexture);
+            // 添加到缓存
+            textureCache[cacheKey] = texture;
             
-            return finalTexture;
+            return texture;
         }
+        
+        // 纹理缓存，避免重复创建相同的纹理
+        private static Dictionary<string, Texture2D> textureCache = new Dictionary<string, Texture2D>();
+        
+        /// <summary>
+        /// 清理纹理缓存，防止内存泄漏
+        /// </summary>
+        public static void ClearTextureCache()
+        {
+            foreach (var texture in textureCache.Values)
+            {
+                if (texture != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(texture);
+                }
+            }
+            textureCache.Clear();
+        }
+        
+        /// <summary>
+        /// 创建圆角纹理（带边框）- 使用高性能算法
+        /// </summary>
+        private Texture2D CreateRoundedTexture(int width, int height, int cornerRadius)
+        {
+            // 生成缓存键
+            string cacheKey = $"rounded_{width}_{height}_{cornerRadius}";
+            
+            // 检查缓存
+            if (textureCache.ContainsKey(cacheKey) && textureCache[cacheKey] != null)
+            {
+                return textureCache[cacheKey];
+            }
+            
+            return CreateSimpleRoundedTexture(width, height, cornerRadius, cacheKey);
+        }
+        
+        /// <summary>
+        /// 创建圆角纹理，高性能算法
+        /// </summary>
+        private Texture2D CreateSimpleRoundedTexture(int width, int height, int cornerRadius, string cacheKey)
+        {
+            Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            Color[] pixels = new Color[width * height];
+            
+            // 预计算圆角区域
+            float radiusF = cornerRadius;
+            int borderWidth = 2; // 简化边框宽度
+            
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    bool isVisible = true;
+                    bool isBorder = false;
+                    
+                    // 简化的圆角检查：只检查四个角
+                    if ((x < cornerRadius && y < cornerRadius) || // 左上角
+                        (x >= width - cornerRadius && y < cornerRadius) || // 右上角
+                        (x < cornerRadius && y >= height - cornerRadius) || // 左下角
+                        (x >= width - cornerRadius && y >= height - cornerRadius)) // 右下角
+                    {
+                        float centerX, centerY;
+                        if (x < cornerRadius && y < cornerRadius) // 左上角
+                        {
+                            centerX = cornerRadius;
+                            centerY = cornerRadius;
+                        }
+                        else if (x >= width - cornerRadius && y < cornerRadius) // 右上角
+                        {
+                            centerX = width - cornerRadius;
+                            centerY = cornerRadius;
+                        }
+                        else if (x < cornerRadius && y >= height - cornerRadius) // 左下角
+                        {
+                            centerX = cornerRadius;
+                            centerY = height - cornerRadius;
+                        }
+                        else // 右下角
+                        {
+                            centerX = width - cornerRadius;
+                            centerY = height - cornerRadius;
+                        }
+                        
+                        float distance = Mathf.Sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY));
+                        
+                        if (distance > radiusF)
+                        {
+                            isVisible = false;
+                        }
+                        else if (distance > radiusF - borderWidth)
+                        {
+                            isBorder = true;
+                        }
+                    }
+                    else
+                    {
+                        // 非圆角区域的边框检查
+                        if (x < borderWidth || x >= width - borderWidth || y < borderWidth || y >= height - borderWidth)
+                        {
+                            isBorder = true;
+                        }
+                    }
+                    
+                    if (!isVisible)
+                    {
+                        pixels[y * width + x] = Color.clear;
+                    }
+                    else if (isBorder)
+                    {
+                        pixels[y * width + x] = Color.black;
+                    }
+                    else
+                    {
+                        pixels[y * width + x] = Color.white;
+                    }
+                }
+            }
+            
+            texture.SetPixels(pixels);
+            texture.Apply();
+            
+            // 添加到缓存
+            textureCache[cacheKey] = texture;
+            
+            return texture;
+        }
+        
+
     }
 }
