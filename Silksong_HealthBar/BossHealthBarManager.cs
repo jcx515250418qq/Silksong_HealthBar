@@ -66,8 +66,9 @@ namespace HealthbarPlugin
             int index = activeBossHealthBars.IndexOf(bossHealthBar);
             if (index == -1) return BASE_Y_OFFSET;
             
-            // 计算每个血条单元的总高度（包括血条、名字文本和间距）
-            float totalUnitHeight = HEALTH_BAR_HEIGHT + BOSS_NAME_TEXT_HEIGHT + NAME_TEXT_OFFSET + SPACING_BETWEEN_BARS;
+            // 计算每个血条单元的总高度（包括血条、名字文本和间距），使用配置的高度
+            float bossHealthBarHeight = Plugin.BossHealthBarHeight.Value;
+            float totalUnitHeight = bossHealthBarHeight + BOSS_NAME_TEXT_HEIGHT + NAME_TEXT_OFFSET + SPACING_BETWEEN_BARS;
             
             // 根据配置决定是顶部还是底部显示
             bool isBottomPosition = Plugin.BossHealthBarBottomPosition.Value;
@@ -83,6 +84,68 @@ namespace HealthbarPlugin
                 // 顶部显示：第一个血条在最上方，后续血条向下叠加
                 // 需要额外考虑名字文本在血条上方的空间
                 return -(BASE_Y_OFFSET + (index * totalUnitHeight));
+            }
+        }
+        
+        /// <summary>
+        /// 获取指定BOSS血条名字文本应该使用的Y偏移值
+        /// </summary>
+        /// <param name="bossHealthBar">目标BOSS血条</param>
+        /// <returns>名字文本Y偏移值</returns>
+        public static float GetNameTextYOffsetForBossHealthBar(BossHealthBar bossHealthBar)
+        {
+            if (bossHealthBar == null) return BASE_Y_OFFSET;
+            
+            int index = activeBossHealthBars.IndexOf(bossHealthBar);
+            if (index == -1) return BASE_Y_OFFSET;
+            
+            // 获取血条的Y偏移
+            float bloodBarYOffset = GetYOffsetForBossHealthBar(bossHealthBar);
+            
+            // 根据血条高度动态计算名字文本的偏移
+            float bossHealthBarHeight = Plugin.BossHealthBarHeight.Value;
+            bool isBottomPosition = Plugin.BossHealthBarBottomPosition.Value;
+            
+            if (isBottomPosition)
+            {
+                // 底部显示：名字文本在血条上方
+                return bloodBarYOffset + (bossHealthBarHeight / 2) + NAME_TEXT_OFFSET;
+            }
+            else
+            {
+                // 顶部显示：名字文本在血条上方
+                return bloodBarYOffset - (bossHealthBarHeight / 2) - NAME_TEXT_OFFSET;
+            }
+        }
+        
+        /// <summary>
+        /// 获取指定BOSS血条血量数值文本应该使用的Y偏移值
+        /// </summary>
+        /// <param name="bossHealthBar">目标BOSS血条</param>
+        /// <returns>血量数值文本Y偏移值</returns>
+        public static float GetHealthNumbersYOffsetForBossHealthBar(BossHealthBar bossHealthBar)
+        {
+            if (bossHealthBar == null) return BASE_Y_OFFSET;
+            
+            int index = activeBossHealthBars.IndexOf(bossHealthBar);
+            if (index == -1) return BASE_Y_OFFSET;
+            
+            // 获取血条的Y偏移
+            float bloodBarYOffset = GetYOffsetForBossHealthBar(bossHealthBar);
+            
+            // 根据血条高度动态计算血量数值文本的偏移
+            float bossHealthBarHeight = Plugin.BossHealthBarHeight.Value;
+            bool isBottomPosition = Plugin.BossHealthBarBottomPosition.Value;
+            
+            if (isBottomPosition)
+            {
+                // 底部显示：血量数值文本在血条中心位置
+                return bloodBarYOffset;
+            }
+            else
+            {
+                // 顶部显示：血量数值文本在血条中心位置
+                return bloodBarYOffset;
             }
         }
         
