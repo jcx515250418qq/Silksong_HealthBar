@@ -1,5 +1,35 @@
 # Changelog / 更新日志
 
+## Version 2.0.0
+
+### Major Updates / 重大更新
+
+1. **Bug Fixes / 问题修复**
+   - Fixed bugs where certain BOSSes and normal enemies could not display health bars correctly
+   - 修复了某些BOSS和普通敌人无法正确显示血条的BUG
+
+2. **Enhanced Customization / 增强自定义功能**
+   - Added fine-tuning for health bar positioning
+   - Added BOSS health bar background color customization
+   - Added toggle switch for BOSS health numbers display
+   - 新增了血条位置的精细调准
+   - 新增BOSS血条背景的颜色自定义
+   - 新增BOSS血量数值显示开关
+
+3. **Independent Display Controls / 独立显示控制**
+   - Added separate toggle switches for BOSS and normal enemy health bars
+   - 新增BOSS和普通敌人血条的单独显示开关
+
+4. **Improved Texture Handling / 改进材质处理**
+   - Changed health bar scaling mode from compression to clipping for better custom texture compatibility
+   - 将血条缩小的模式从压缩改为剪切，可以适应更多的自定义材质
+
+5. **Localization Improvements / 本地化改进**
+   - BOSS names now display correct in-game names with multi-language support instead of GameObject.name
+   - BOSS的名字将显示正确的游戏内名字，并支持多语言，而不是GameObject.name
+
+---
+
 ## Version 1.0.9
 
 ### New Features / 新功能

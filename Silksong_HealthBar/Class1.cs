@@ -20,7 +20,7 @@ namespace HealthbarPlugin
 
         public const string PLUGIN_GUID = "com.Xiaohai.HealthbarAndDamageShow";
         public const string PLUGIN_NAME = "Healthbar&DamageShow";
-        public const string PLUGIN_VERSION = "1.0.7";
+        public const string PLUGIN_VERSION = "2.0.0";
 
 
         public static Plugin Instance { get; private set; }
@@ -30,7 +30,8 @@ namespace HealthbarPlugin
 
         // 配置项 
 
-        public static ConfigEntry<bool> ShowHealthBar;
+        public static ConfigEntry<bool> ShowEnemyHealthBar;
+        public static ConfigEntry<bool> ShowBossHealthBar;
         public static ConfigEntry<bool> ShowDamageText;
         public static ConfigEntry<KeyCode> ConfigGUI_Hotkey;
 
@@ -41,6 +42,7 @@ namespace HealthbarPlugin
 
         // 血条配置
         public static ConfigEntry<string> HealthBarFillColor;
+        public static ConfigEntry<string> HealthBarBackgroundColor;
 
         public static ConfigEntry<float> HealthBarWidth;
         public static ConfigEntry<float> HealthBarHeight;
@@ -51,16 +53,24 @@ namespace HealthbarPlugin
         public static ConfigEntry<float> HealthBarNumbersVerticalOffset;
         public static ConfigEntry<bool> HealthBarNumbersInsideBar;
         public static ConfigEntry<bool> HealthBarNumbersAutoWhiteOnLowHealth; // 血量低于45%时自动变白
+        public static ConfigEntry<float> HealthBarFillMarginTop;
+        public static ConfigEntry<float> HealthBarFillMarginBottom;
 
         // BOSS血条配置
         public static ConfigEntry<int> BossHealthThreshold;
         public static ConfigEntry<string> BossHealthBarFillColor;
+        public static ConfigEntry<string> BossHealthBarBackgroundColor;
         public static ConfigEntry<float> BossHealthBarWidth;
         public static ConfigEntry<float> BossHealthBarHeight;
         public static ConfigEntry<bool> BossHealthBarBottomPosition;
         public static ConfigEntry<string> BossHealthBarNameColor;
+        public static ConfigEntry<bool> ShowBossHealthBarNumbers;
         public static ConfigEntry<string> BossHealthBarNumbersColor;
         public static ConfigEntry<float> BossMaxHealth;
+        public static ConfigEntry<float> BossHealthBarFillMarginTop;
+        public static ConfigEntry<float> BossHealthBarFillMarginBottom;
+        public static ConfigEntry<float> BossHealthBarFillMarginLeft;
+        public static ConfigEntry<float> BossHealthBarFillMarginRight;
 
         // 血条形状配置
         public static ConfigEntry<int> HealthBarShape;
@@ -74,6 +84,7 @@ namespace HealthbarPlugin
         public static ConfigEntry<bool> UseCustomTextures;
         public static ConfigEntry<int> CustomTextureScaleMode;
         
+
 
 
 
@@ -108,20 +119,15 @@ namespace HealthbarPlugin
             }
         }
 
-        private void OnDestroy()
-        {
-            // 清理纹理缓存，防止内存泄漏
-            EnemyHealthBar.ClearTextureCache();
-            CustomTextureManager.ClearCache();
-            Logger.LogInfo("插件卸载，已清理所有纹理缓存");
-        }
+
 
         private void InitializeConfig()
         {
             // 显示开关配置 / Display Settings
-            ShowHealthBar = Config.Bind<bool>("Display", "ShowHealthBar", true, "是否显示敌人血条 / Whether to show enemy health bars");
-            ShowDamageText = Config.Bind<bool>("Display", "ShowDamageText", true, "是否显示伤害文本 / Whether to show damage text");
-            ConfigGUI_Hotkey = Config.Bind<KeyCode>("Display", "ConfigGUI_Hotkey", KeyCode.Home, "配置面板热键 / Hotkey to toggle config GUI");
+        ShowEnemyHealthBar = Config.Bind<bool>("Display", "ShowEnemyHealthBar", true, "是否显示普通敌人血条 / Whether to show normal enemy health bars");
+        ShowBossHealthBar = Config.Bind<bool>("Display", "ShowBossHealthBar", true, "是否显示BOSS血条 / Whether to show boss health bars");
+        ShowDamageText = Config.Bind<bool>("Display", "ShowDamageText", true, "是否显示伤害文本 / Whether to show damage text");
+        ConfigGUI_Hotkey = Config.Bind<KeyCode>("Display", "ConfigGUI_Hotkey", KeyCode.Home, "配置面板热键 / Hotkey to toggle config GUI");
 
             // 伤害文本配置 / Damage Text Settings
             DamageTextDuration = Config.Bind<float>("DamageText", "Duration", 2.0f, "伤害文本显示持续时间（秒） / Damage text display duration (seconds)");
@@ -130,6 +136,7 @@ namespace HealthbarPlugin
             DamageTextUseSign = Config.Bind<bool>("DamageText", "UseSign", true, "伤害文本是否显示符号?(Plus:+, Minus:-) / Whether to show signs in damage text (Plus:+, Minus:-)");
             // 血条配置 / Health Bar Settings
             HealthBarFillColor = Config.Bind<string>("HealthBar", "FillColor", "#beb8b8ff", "血条填充颜色（十六进制格式，如#FF0000为红色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Health bar fill color (hex format, e.g. #FF0000 for red)");
+            HealthBarBackgroundColor = Config.Bind<string>("HealthBar", "BackgroundColor", "#000000ff", "血条背景颜色（十六进制格式，如#000000为黑色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Health bar background color (hex format, e.g. #000000 for black)");
 
             HealthBarWidth = Config.Bind<float>("HealthBar", "Width", 135f, "血条宽度（像素） / Health bar width (pixels)");
             HealthBarHeight = Config.Bind<float>("HealthBar", "Height", 25f, "血条高度（像素） / Health bar height (pixels)");
@@ -140,20 +147,32 @@ namespace HealthbarPlugin
             HealthBarNumbersVerticalOffset = Config.Bind<float>("HealthBar", "NumbersVerticalOffset", 0.3f, "血量数值文本相对于血条的上下偏移值（正值向上，负值向下） / Vertical offset of health numbers relative to health bar (positive up, negative down)");
             HealthBarNumbersInsideBar = Config.Bind<bool>("HealthBar", "NumbersInsideBar", false, "是否将血量数值显示在血条内部（启用时忽略垂直偏移值） / Whether to display health numbers inside the health bar (ignores vertical offset when enabled)");
             HealthBarNumbersAutoWhiteOnLowHealth = Config.Bind<bool>("HealthBar", "NumbersAutoWhiteOnLowHealth", true, "当血量低于49%时，血量文本颜色自动变为白色（确保在黑色背景下可见） / Automatically change health numbers color to white when health is below 49% (ensures visibility on dark backgrounds)");
+            
+            // 血条填充物边距配置 / Health Bar Fill Margin Settings
+            HealthBarFillMarginTop = Config.Bind<float>("HealthBar", "FillMarginTop", 2f, "血条填充物距离背景上边框的距离（像素） / Distance between health bar fill and top border of background (pixels)");
+            HealthBarFillMarginBottom = Config.Bind<float>("HealthBar", "FillMarginBottom", 2f, "血条填充物距离背景下边框的距离（像素） / Distance between health bar fill and bottom border of background (pixels)");
 
             // BOSS血条配置 / Boss Health Bar Settings
             BossHealthThreshold = Config.Bind<int>("BossHealthBar", "HealthThreshold", 105, "BOSS血量阈值（血量大于此值时显示BOSS血条而非普通血条） / Boss health threshold (show boss health bar instead of normal health bar when HP exceeds this value)");
             BossHealthBarFillColor = Config.Bind<string>("BossHealthBar", "FillColor", "#beb8b8ff", "BOSS血条填充颜色（十六进制格式，如#FF0000为红色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss health bar fill color (hex format, e.g. #FF0000 for red)");
+            BossHealthBarBackgroundColor = Config.Bind<string>("BossHealthBar", "BackgroundColor", "#000000ff", "BOSS血条背景颜色（十六进制格式，如#000000为黑色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss health bar background color (hex format, e.g. #000000 for black)");
             BossHealthBarWidth = Config.Bind<float>("BossHealthBar", "Width", 900, "BOSS血条宽度（像素） / Boss health bar width (pixels)");
             BossHealthBarHeight = Config.Bind<float>("BossHealthBar", "Height", 25f, "BOSS血条高度（像素） / Boss health bar height (pixels)");
             BossHealthBarBottomPosition = Config.Bind<bool>("BossHealthBar", "BottomPosition", true, "BOSS血条位置（true=屏幕下方中间，false=屏幕上方中间） / Boss health bar position (true=bottom center of screen, false=top center of screen)");
             BossHealthBarNameColor = Config.Bind<string>("BossHealthBar", "NameColor", "#0e0404ff", "BOSS名字文本颜色（十六进制格式，如#FFFFFF为白色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss name text color (hex format, e.g. #FFFFFF for white)");
+            ShowBossHealthBarNumbers = Config.Bind<bool>("BossHealthBar", "ShowNumbers", true, "是否显示BOSS血量数字（当前HP/最大HP） / Whether to show boss health numbers (current HP / max HP)");
             BossMaxHealth = Config.Bind<float>("BossHealthBar", "BossMaxHealth", 3000f, "显示BOSS最大生命值（用于修复将未知的巨大生命值的物体显示为BOSS血条） / Boss maximum health Used to fix the issue where unknown non-boss objects with extremely high health values are displayed as boss health bars.)");
             BossHealthBarNumbersColor = Config.Bind<string>("BossHealthBar", "NumbersColor", "#0e0404ff", "BOSS血量数值文本颜色（十六进制格式，如#FFFFFF为白色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss health numbers text color (hex format, e.g. #FFFFFF for white)");
+            
+            // BOSS血条填充物边距配置 / Boss Health Bar Fill Margin Settings
+            BossHealthBarFillMarginTop = Config.Bind<float>("BossHealthBar", "FillMarginTop", 2f, "BOSS血条填充物距离背景上边框的距离（像素） / Distance between boss health bar fill and top border of background (pixels)");
+            BossHealthBarFillMarginBottom = Config.Bind<float>("BossHealthBar", "FillMarginBottom", 2f, "BOSS血条填充物距离背景下边框的距离（像素） / Distance between boss health bar fill and bottom border of background (pixels)");
+            BossHealthBarFillMarginLeft = Config.Bind<float>("BossHealthBar", "FillMarginLeft", 2f, "BOSS血条填充物距离背景左边框的距离（像素） / Distance between boss health bar fill and left border of background (pixels)");
+            BossHealthBarFillMarginRight = Config.Bind<float>("BossHealthBar", "FillMarginRight", 2f, "BOSS血条填充物距离背景右边框的距离（像素） / Distance between boss health bar fill and right border of background (pixels)");
 
             // 血条形状配置 / Health Bar Shape Settings
-            HealthBarShape = Config.Bind<int>("HealthBar", "Shape", 2, "敌人血条形状（1=长方形，2=圆角） / Enemy health bar shape (1=Rectangle, 2=Rounded)");
-            BossHealthBarShape = Config.Bind<int>("BossHealthBar", "Shape", 2, "BOSS血条形状（1=长方形，2=圆角） / Boss health bar shape (1=Rectangle, 2=Rounded)");
+            HealthBarShape = Config.Bind<int>("HealthBar", "Shape", 1, "敌人血条形状（1=长方形，2=圆角） / Enemy health bar shape (1=Rectangle, 2=Rounded)");
+            BossHealthBarShape = Config.Bind<int>("BossHealthBar", "Shape", 1, "BOSS血条形状（1=长方形，2=圆角） / Boss health bar shape (1=Rectangle, 2=Rounded)");
 
             // 圆角半径配置 / Corner Radius Settings
             HealthBarCornerRadius = Config.Bind<int>("HealthBar", "CornerRadius", 30, "敌人血条圆角半径（像素） / Enemy health bar corner radius (pixels)");
@@ -162,6 +181,8 @@ namespace HealthbarPlugin
             // 自定义材质配置 / Custom Texture Settings
             UseCustomTextures = Config.Bind<bool>("CustomTexture", "Enabled", false, "是否启用自定义血条材质（从DLL目录/Texture/文件夹加载） / Enable custom health bar textures (load from DLL directory/Texture/ folder)");
             CustomTextureScaleMode = Config.Bind<int>("CustomTexture", "ScaleMode", 1, "自定义材质缩放模式（1=拉伸适应，2=保持比例） / Custom texture scale mode (1=Stretch to fit, 2=Keep aspect ratio)");
+            
+
             
 
             if (HealthBarNumbersInsideBar.Value)
@@ -189,28 +210,21 @@ namespace HealthbarPlugin
                 if (__instance.initHp > Plugin.BossMaxHealth.Value || __instance.hp > Plugin.BossMaxHealth.Value) return;
 
 
-                // 检查是否启用血条显示
-                if (Plugin.ShowHealthBar.Value)
+                // 根据血量阈值判断挂载普通血条还是BOSS血条
+                if (__instance.hp > Plugin.BossHealthThreshold.Value)
                 {
-                    // 根据血量阈值判断挂载普通血条还是BOSS血条
-                    if (__instance.hp > Plugin.BossHealthThreshold.Value)
+                    // BOSS血条：血量大于阈值，检查BOSS血条是否启用
+                    if (Plugin.ShowBossHealthBar.Value && __instance.gameObject.GetComponent<BossHealthBar>() == null)
                     {
-                        // BOSS血条：血量大于阈值
-                        if (__instance.gameObject.GetComponent<BossHealthBar>() == null)
-                        {
-                            __instance.gameObject.AddComponent<BossHealthBar>();
-            
-
-                        }
+                        __instance.gameObject.AddComponent<BossHealthBar>();
                     }
-                    else
+                }
+                else
+                {
+                    // 普通血条：血量小于等于阈值，检查普通敌人血条是否启用
+                    if (Plugin.ShowEnemyHealthBar.Value && __instance.gameObject.GetComponent<EnemyHealthBar>() == null)
                     {
-                        // 普通血条：血量小于等于阈值
-                        if (__instance.gameObject.GetComponent<EnemyHealthBar>() == null)
-                        {
-                            __instance.gameObject.AddComponent<EnemyHealthBar>();
-            
-                        }
+                        __instance.gameObject.AddComponent<EnemyHealthBar>();
                     }
                 }
             }
@@ -274,7 +288,7 @@ namespace HealthbarPlugin
 
                 if (__instance.initHp >= Plugin.BossHealthThreshold.Value)
                 {
-                    if (!Plugin.ShowHealthBar.Value) return;
+                    if (!Plugin.ShowBossHealthBar.Value) return;
                     var healthBar = __instance.gameObject.GetComponent<BossHealthBar>();
                     if (healthBar == null) healthBar = __instance.gameObject.AddComponent<BossHealthBar>();
                     if (finalDamage < 0)
@@ -290,7 +304,7 @@ namespace HealthbarPlugin
                 }
                 else
                 {
-                    if (!Plugin.ShowHealthBar.Value) return;
+                    if (!Plugin.ShowEnemyHealthBar.Value) return;
                     var healthBar1 = __instance.gameObject.GetComponent<EnemyHealthBar>();
                     if (healthBar1 == null) healthBar1 = __instance.gameObject.AddComponent<EnemyHealthBar>();
                     if (finalDamage < 0)
@@ -335,6 +349,7 @@ namespace HealthbarPlugin
         // 材质文件名常量
         private const string ENEMY_TEXTURE_NAME = "HpBar.png";
         private const string BOSS_TEXTURE_NAME = "HpBar_Boss.png";
+        private const string BORDER_TEXTURE_NAME = "BG.png";
         
         /// <summary>
         /// 初始化材质管理器，设置材质文件夹路径
@@ -519,8 +534,9 @@ namespace HealthbarPlugin
                 // 直接替换sprite
                 image.sprite = customSprite;
                 
-                // 设置为Simple类型
-                image.type = Image.Type.Simple;
+                // 设置为Filled类型以实现裁切效果
+                image.type = Image.Type.Filled;
+                image.fillMethod = Image.FillMethod.Horizontal;
                 
                 // 根据配置设置缩放模式
                 switch (Plugin.CustomTextureScaleMode.Value)
@@ -568,6 +584,15 @@ namespace HealthbarPlugin
             {
                 Plugin.logger.LogError($"清理自定义材质缓存失败: {e.Message}");
             }
+        }
+        
+        /// <summary>
+        /// 获取边框材质
+        /// </summary>
+        /// <returns>成功返回Sprite，失败返回null</returns>
+        public static Sprite GetBorderTexture()
+        {
+            return LoadTexture(BORDER_TEXTURE_NAME);
         }
         
         /// <summary>

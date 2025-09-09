@@ -29,8 +29,10 @@ namespace HealthbarPlugin
             {"boss_settings_en", "=== Boss Health Bar Settings ==="},
             
             // 配置项
-            {"show_healthbar_cn", "显示敌人血条"},
-            {"show_healthbar_en", "Show Enemy Health Bars"},
+            {"show_enemy_healthbar_cn", "显示普通敌人血条"},
+            {"show_enemy_healthbar_en", "Show Normal Enemy Health Bars"},
+            {"show_boss_healthbar_cn", "显示BOSS血条"},
+            {"show_boss_healthbar_en", "Show Boss Health Bars"},
             {"show_damage_text_cn", "显示伤害文本"},
             {"show_damage_text_en", "Show Damage Text"},
             {"damage_text_use_sign_cn", "显示+/-符号"},
@@ -48,6 +50,8 @@ namespace HealthbarPlugin
             
             {"healthbar_fill_color_cn", "血条填充颜色 (十六进制):"},
             {"healthbar_fill_color_en", "Health Bar Fill Color (Hex):"},
+            {"healthbar_background_color_cn", "血条背景颜色 (十六进制):"},
+            {"healthbar_background_color_en", "Health Bar Background Color (Hex):"},
 
             {"healthbar_width_cn", "血条宽度"},
             {"healthbar_width_en", "Health Bar Width"},
@@ -67,11 +71,17 @@ namespace HealthbarPlugin
             {"healthbar_numbers_inside_bar_en", "Show Health Numbers Inside Bar"},
             {"healthbar_numbers_auto_white_cn", "血量低于49%时自动变白"},
             {"healthbar_numbers_auto_white_en", "Auto White on Low Health (49%)"},
+            {"healthbar_fill_margin_top_cn", "血条填充物上边距"},
+            {"healthbar_fill_margin_top_en", "Health Bar Fill Top Margin"},
+            {"healthbar_fill_margin_bottom_cn", "血条填充物下边距"},
+            {"healthbar_fill_margin_bottom_en", "Health Bar Fill Bottom Margin"},
             
             {"boss_health_threshold_cn", "BOSS血量阈值"},
             {"boss_health_threshold_en", "Boss Health Threshold"},
             {"boss_healthbar_fill_color_cn", "BOSS血条填充颜色 (十六进制):"},
             {"boss_healthbar_fill_color_en", "Boss Health Bar Fill Color (Hex):"},
+            {"boss_healthbar_background_color_cn", "BOSS血条背景颜色 (十六进制):"},
+            {"boss_healthbar_background_color_en", "Boss Health Bar Background Color (Hex):"},
             {"boss_healthbar_width_cn", "BOSS血条宽度"},
             {"boss_healthbar_width_en", "Boss Health Bar Width"},
             {"boss_healthbar_height_cn", "BOSS血条高度"},
@@ -80,8 +90,18 @@ namespace HealthbarPlugin
             {"boss_healthbar_bottom_position_en", "Show Boss Health Bar at Bottom"},
             {"boss_healthbar_name_color_cn", "BOSS名字颜色 (十六进制):"},
             {"boss_healthbar_name_color_en", "Boss Name Color (Hex):"},
+            {"show_boss_healthbar_numbers_cn", "显示BOSS血量数字"},
+            {"show_boss_healthbar_numbers_en", "Show Boss Health Numbers"},
             {"boss_healthbar_numbers_color_cn", "BOSS血量数字颜色 (十六进制):"},
             {"boss_healthbar_numbers_color_en", "Boss Health Numbers Color (Hex):"},
+            {"boss_healthbar_fill_margin_top_cn", "BOSS血条填充物上边距"},
+            {"boss_healthbar_fill_margin_top_en", "Boss Health Bar Fill Top Margin"},
+            {"boss_healthbar_fill_margin_bottom_cn", "BOSS血条填充物下边距"},
+            {"boss_healthbar_fill_margin_bottom_en", "Boss Health Bar Fill Bottom Margin"},
+            {"boss_healthbar_fill_margin_left_cn", "BOSS血条填充物左边距"},
+            {"boss_healthbar_fill_margin_left_en", "Boss Health Bar Fill Left Margin"},
+            {"boss_healthbar_fill_margin_right_cn", "BOSS血条填充物右边距"},
+            {"boss_healthbar_fill_margin_right_en", "Boss Health Bar Fill Right Margin"},
             
             // 血条形状
             {"healthbar_shape_cn", "敌人血条形状"},
@@ -97,6 +117,10 @@ namespace HealthbarPlugin
             {"corner_radius_en", "Corner Radius"},
             {"boss_corner_radius_cn", "BOSS血条圆角半径"},
             {"boss_corner_radius_en", "Boss Health Bar Corner Radius"},
+            
+
+            
+
             
             // 自定义材质
             {"custom_texture_settings_cn", "=== 自定义材质配置 ==="},
@@ -175,7 +199,8 @@ namespace HealthbarPlugin
             
             GUILayout.Label(GetText("display_settings"), GUI.skin.box);
             
-            Plugin.ShowHealthBar.Value = GUILayout.Toggle(Plugin.ShowHealthBar.Value, GetText("show_healthbar"));
+            Plugin.ShowEnemyHealthBar.Value = GUILayout.Toggle(Plugin.ShowEnemyHealthBar.Value, GetText("show_enemy_healthbar"));
+            Plugin.ShowBossHealthBar.Value = GUILayout.Toggle(Plugin.ShowBossHealthBar.Value, GetText("show_boss_healthbar"));
             Plugin.ShowDamageText.Value = GUILayout.Toggle(Plugin.ShowDamageText.Value, GetText("show_damage_text"));
             
             GUILayout.Label(GetText("damage_text_use_sign_label"));
@@ -198,6 +223,9 @@ namespace HealthbarPlugin
             
             GUILayout.Label(GetText("healthbar_fill_color"));
             Plugin.HealthBarFillColor.Value = GUILayout.TextField(Plugin.HealthBarFillColor.Value);
+            
+            GUILayout.Label(GetText("healthbar_background_color"));
+            Plugin.HealthBarBackgroundColor.Value = GUILayout.TextField(Plugin.HealthBarBackgroundColor.Value);
             
 
             
@@ -225,6 +253,13 @@ namespace HealthbarPlugin
             
             Plugin.HealthBarNumbersAutoWhiteOnLowHealth.Value = GUILayout.Toggle(Plugin.HealthBarNumbersAutoWhiteOnLowHealth.Value, GetText("healthbar_numbers_auto_white"));
             
+            // 血条填充物边距配置
+            GUILayout.Label($"{GetText("healthbar_fill_margin_top")}: {Plugin.HealthBarFillMarginTop.Value:F1}");
+            Plugin.HealthBarFillMarginTop.Value = GUILayout.HorizontalSlider(Plugin.HealthBarFillMarginTop.Value, 0f, 10f);
+            
+            GUILayout.Label($"{GetText("healthbar_fill_margin_bottom")}: {Plugin.HealthBarFillMarginBottom.Value:F1}");
+            Plugin.HealthBarFillMarginBottom.Value = GUILayout.HorizontalSlider(Plugin.HealthBarFillMarginBottom.Value, 0f, 10f);
+            
             // 敌人血条形状选择
             GUILayout.Label(GetText("healthbar_shape"));
             GUILayout.BeginHorizontal();
@@ -250,6 +285,9 @@ namespace HealthbarPlugin
             GUILayout.Label(GetText("boss_healthbar_fill_color"));
             Plugin.BossHealthBarFillColor.Value = GUILayout.TextField(Plugin.BossHealthBarFillColor.Value);
             
+            GUILayout.Label(GetText("boss_healthbar_background_color"));
+            Plugin.BossHealthBarBackgroundColor.Value = GUILayout.TextField(Plugin.BossHealthBarBackgroundColor.Value);
+            
             GUILayout.Label($"{GetText("boss_healthbar_width")}: {Plugin.BossHealthBarWidth.Value:F0}");
             Plugin.BossHealthBarWidth.Value = GUILayout.HorizontalSlider(Plugin.BossHealthBarWidth.Value, 500f, 1200f);
             
@@ -261,8 +299,23 @@ namespace HealthbarPlugin
             GUILayout.Label(GetText("boss_healthbar_name_color"));
             Plugin.BossHealthBarNameColor.Value = GUILayout.TextField(Plugin.BossHealthBarNameColor.Value);
             
+            Plugin.ShowBossHealthBarNumbers.Value = GUILayout.Toggle(Plugin.ShowBossHealthBarNumbers.Value, GetText("show_boss_healthbar_numbers"));
+            
             GUILayout.Label(GetText("boss_healthbar_numbers_color"));
             Plugin.BossHealthBarNumbersColor.Value = GUILayout.TextField(Plugin.BossHealthBarNumbersColor.Value);
+            
+            // BOSS血条填充物边距配置
+            GUILayout.Label($"{GetText("boss_healthbar_fill_margin_top")}: {Plugin.BossHealthBarFillMarginTop.Value:F1}");
+            Plugin.BossHealthBarFillMarginTop.Value = GUILayout.HorizontalSlider(Plugin.BossHealthBarFillMarginTop.Value, 0f, 10f);
+            
+            GUILayout.Label($"{GetText("boss_healthbar_fill_margin_bottom")}: {Plugin.BossHealthBarFillMarginBottom.Value:F1}");
+            Plugin.BossHealthBarFillMarginBottom.Value = GUILayout.HorizontalSlider(Plugin.BossHealthBarFillMarginBottom.Value, 0f, 10f);
+            
+            GUILayout.Label($"{GetText("boss_healthbar_fill_margin_left")}: {Plugin.BossHealthBarFillMarginLeft.Value:F1}");
+            Plugin.BossHealthBarFillMarginLeft.Value = GUILayout.HorizontalSlider(Plugin.BossHealthBarFillMarginLeft.Value, 0f, 10f);
+            
+            GUILayout.Label($"{GetText("boss_healthbar_fill_margin_right")}: {Plugin.BossHealthBarFillMarginRight.Value:F1}");
+            Plugin.BossHealthBarFillMarginRight.Value = GUILayout.HorizontalSlider(Plugin.BossHealthBarFillMarginRight.Value, 0f, 10f);
             
             // BOSS血条形状选择
             GUILayout.Label(GetText("boss_healthbar_shape"));
@@ -279,6 +332,8 @@ namespace HealthbarPlugin
                 GUILayout.Label($"{GetText("boss_corner_radius")}: {Plugin.BossHealthBarCornerRadius.Value}");
                 Plugin.BossHealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.BossHealthBarCornerRadius.Value, 5, 50);
             }
+            
+
             
             GUILayout.Space(10);
             GUILayout.Label(GetText("custom_texture_settings"), GUI.skin.box);
@@ -392,7 +447,8 @@ namespace HealthbarPlugin
             try
             {
                 // 显示开关配置
-                Plugin.ShowHealthBar.Value = true;
+                Plugin.ShowEnemyHealthBar.Value = true;
+                Plugin.ShowBossHealthBar.Value = true;
                 Plugin.ShowDamageText.Value = true;
                 Plugin.ConfigGUI_Hotkey.Value = KeyCode.Home;
                 
@@ -404,33 +460,45 @@ namespace HealthbarPlugin
                 
                 // 血条配置
                 Plugin.HealthBarFillColor.Value = "#beb8b8ff";
-                Plugin.HealthBarWidth.Value = 165f;
+                Plugin.HealthBarWidth.Value = 135f;
                 Plugin.HealthBarHeight.Value = 25f;
                 Plugin.ShowHealthBarNumbers.Value = true;
-                Plugin.HealthBarNumbersFontSize.Value = 20;
-                Plugin.HealthBarNumbersColor.Value = "#000000FF";
+                Plugin.HealthBarNumbersFontSize.Value = 32;
+                Plugin.HealthBarNumbersColor.Value = "#0e0404ff";
                 Plugin.HealthBarHideDelay.Value = 1.5f;
                 Plugin.HealthBarNumbersVerticalOffset.Value = 0.3f;
-                Plugin.HealthBarNumbersInsideBar.Value = true;
+                Plugin.HealthBarNumbersInsideBar.Value = false;
                 Plugin.HealthBarNumbersAutoWhiteOnLowHealth.Value = true;
+                Plugin.HealthBarFillMarginTop.Value = 2f;
+                Plugin.HealthBarFillMarginBottom.Value = 2f;
                 
                 // BOSS血条配置
                 Plugin.BossHealthThreshold.Value = 105;
                 Plugin.BossHealthBarFillColor.Value = "#beb8b8ff";
-                Plugin.BossHealthBarWidth.Value = 910f;
+                Plugin.BossHealthBarBackgroundColor.Value = "#000000ff";
+                Plugin.BossHealthBarWidth.Value = 900f;
                 Plugin.BossHealthBarHeight.Value = 25f;
                 Plugin.BossHealthBarBottomPosition.Value = true;
-                Plugin.BossHealthBarNameColor.Value = "#beb8b8ff";
+                Plugin.BossHealthBarNameColor.Value = "#0e0404ff";
+                Plugin.ShowBossHealthBarNumbers.Value = true;
                 Plugin.BossMaxHealth.Value = 3000f;
-                Plugin.BossHealthBarNumbersColor.Value = "#000000ff";
+                Plugin.BossHealthBarNumbersColor.Value = "#0e0404ff";
+                Plugin.BossHealthBarFillMarginTop.Value = 2f;
+                Plugin.BossHealthBarFillMarginBottom.Value = 2f;
+                Plugin.BossHealthBarFillMarginLeft.Value = 2f;
+                Plugin.BossHealthBarFillMarginRight.Value = 2f;
                 
                 // 血条形状配置
-                Plugin.HealthBarShape.Value = 2;
-                Plugin.BossHealthBarShape.Value = 2;
+                Plugin.HealthBarShape.Value = 1;
+                Plugin.BossHealthBarShape.Value = 1;
                 
                 // 圆角半径配置
-                Plugin.HealthBarCornerRadius.Value = 5;
-                Plugin.BossHealthBarCornerRadius.Value = 15;
+                Plugin.HealthBarCornerRadius.Value = 30;
+                Plugin.BossHealthBarCornerRadius.Value = 30;
+                
+                // 自定义材质配置
+                Plugin.UseCustomTextures.Value = false;
+                Plugin.CustomTextureScaleMode.Value = 1;
                 
 
                 

@@ -4,6 +4,14 @@
 
 **B站视频教程**: https://www.bilibili.com/video/BV1kNaizqEFD
 
+## 打赏 
+
+如果您喜欢这个MOD，可以考虑打赏支持开发者继续创作更多优质内容！
+
+![WeChat QR Code](https://i.postimg.cc/kD3tGxFc/20250907074753-17-40.jpg)![Alipay QR Code](https://i.postimg.cc/NGyJyBk9/20250907074248-16-40.jpg)
+
+
+
 ## Description | 简介
 
 **English**: A mod that displays enemy health bars and damage numbers when attacking enemies in the game. All features are fully configurable to suit your preferences.
@@ -34,11 +42,11 @@
 
 ## Screenshots | 截图
 
-![MOD Preview](https://i.postimg.cc/mDT0qqYS/1.png)
+![MOD Preview](https://i.postimg.cc/qvX098tT/28-1757356236-21140228919.png)
+![Health Numbers Display](https://i.postimg.cc/fb8sbDjq/443509ea6a9130a42571fa32af4c05ac.png)
+![Health Numbers Display](https://i.postimg.cc/N0sYY5Tr/f146eb8be1104ce1ddada58d4b7d0471.png)
+![Health Numbers Display](https://i.postimg.cc/TY1t8GpY/2.png)
 *Preview of the mod in action | 模组效果预览*
-
-![Health Numbers Display](https://i.postimg.cc/8c097zqy/2.png)
-*BOSS feature | BOSS血条功能*
 
 ![Imgur](https://i.postimg.cc/bJLKjTLf/3.png) ![Imgur](https://i.postimg.cc/fyL1W9gt/4.png) 
 *Config GUI*
@@ -142,6 +150,7 @@ The configuration file will be automatically generated after the first run. You 
 
 
 
+
 ## Future Plans | 更新计划
 
 ### English
@@ -168,28 +177,7 @@ Currently, only core functionality has been implemented. Future updates will inc
 - 任何商业用途或修改
 - 本说明的主要用途是敬告某些平台,不要再偷我MOD但是说是自己的了!这样只会打击模组开发者的热情!
 
-## Just want to say | 有话要说
 
-This will likely be the **last update** for this mod in the near future(v1.0.6). Several major bugs have been fixed, and most styles now support customization — except for UI elements that rely on external resources. I've basically done everything possible with pure code.
-
-Next, I'll be moving on to developing other mods and finally taking the time to **actually play the game properly**. I've barely had time to enjoy it lately.
-
-Thanks everyone for your support~
-Good luck and happy gaming! 🎮
-
-这应该是我该MOD最近最后一个版本(v1.0.6)更新了,几个重大的BUG都得到了修复.大部分的样式都支持自定义----除了引用外部资源的UI,基本我把纯代码能做到的都做到了.接下来我要去开发其他MOD以及认真地体验这款游戏了. 最近都没好好玩.感谢大家支持~祝好运!
-
-## 打赏 
-
-如果您喜欢这个MOD，可以考虑打赏支持开发者继续创作更多优质内容！
-
-
-
-### 微信 
-![WeChat QR Code](https://i.imgur.com/KBr7N6R.jpeg)
-
-### 支付宝  
-![Alipay QR Code](https://i.imgur.com/cNOl9jn.png)
 
 ---
 

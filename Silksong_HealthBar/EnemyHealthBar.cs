@@ -49,6 +49,11 @@ namespace HealthbarPlugin
                 healthBarColor = fillColor; 
             }
             
+            if(ColorUtility.TryParseHtmlString(Plugin.HealthBarBackgroundColor.Value, out Color backgroundColor)) 
+            { 
+                healthBarBackgroundColor = backgroundColor; 
+            }
+            
             if(ColorUtility.TryParseHtmlString(Plugin.HealthBarNumbersColor.Value, out Color numbersColor)) 
             { 
                 healthBarNumbersColor = numbersColor; 
@@ -174,7 +179,7 @@ namespace HealthbarPlugin
             // 基础状态检查
             if (healthManager == null || player == null)
             {
-                DestroyHealthBar();
+                HideHealthBar();
                 return;
             }
             
@@ -335,11 +340,10 @@ namespace HealthbarPlugin
         {
             try
             {
-                // 事件驱动机制：当敌人对象被禁用时自动清理血条
+                // 当敌人对象被禁用时只隐藏血条，不销毁（对象可能会重新启用）
                 if (healthBarUI != null)
                 {
-        
-                    DestroyHealthBar();
+                    HideHealthBar();
                 }
             }
             catch (System.Exception ex)
@@ -403,8 +407,8 @@ namespace HealthbarPlugin
                 RectTransform sliderRect = sliderObj.GetComponent<RectTransform>();
                 sliderRect.anchorMin = Vector2.zero;
                 sliderRect.anchorMax = Vector2.one;
-                sliderRect.offsetMin = new Vector2(3f, 3f); // 边框内边距
-                sliderRect.offsetMax = new Vector2(-3f, -3f);
+                sliderRect.offsetMin = Vector2.zero;
+                sliderRect.offsetMax = Vector2.zero;
                 
                 healthBarSlider.targetGraphic = backgroundImage;
                 
@@ -414,8 +418,9 @@ namespace HealthbarPlugin
                 fillAreaObj.transform.SetParent(sliderObj.transform, false);
                 fillAreaRect.anchorMin = Vector2.zero;
                 fillAreaRect.anchorMax = Vector2.one;
-                fillAreaRect.offsetMin = Vector2.zero;
-                fillAreaRect.offsetMax = Vector2.zero;
+                // 应用填充边距配置
+                fillAreaRect.offsetMin = new Vector2(0, Plugin.HealthBarFillMarginBottom.Value);
+                fillAreaRect.offsetMax = new Vector2(0, -Plugin.HealthBarFillMarginTop.Value);
                 
                 // 创建填充图像
                 GameObject fillObj = new GameObject("Fill");
@@ -457,6 +462,8 @@ namespace HealthbarPlugin
                 }
             }
         }
+        
+
         
         private void UpdateHealthBarDisplay()
         {
@@ -604,6 +611,11 @@ namespace HealthbarPlugin
                 healthBarColor = fillColor; 
             }
             
+            if(ColorUtility.TryParseHtmlString(Plugin.HealthBarBackgroundColor.Value, out Color backgroundColor)) 
+            { 
+                healthBarBackgroundColor = backgroundColor; 
+            }
+            
             if(ColorUtility.TryParseHtmlString(Plugin.HealthBarNumbersColor.Value, out Color numbersColor)) 
             { 
                 healthBarNumbersColor = numbersColor; 
@@ -636,21 +648,8 @@ namespace HealthbarPlugin
         
         private void OnDestroy()
         {
-            // 当怪物被销毁时，清理血条UI
-            if (healthBarUI != null)
-            {
-                Destroy(healthBarUI);
-            }
-            
-            // 清理血量文本Canvas
-            if (healthNumbersCanvas != null)
-            {
-                Destroy(healthNumbersCanvas);
-            }
-            
-            // 清理引用
-            healthNumbersText = null;
-            healthNumbersCanvas = null;
+            // 当怪物被销毁时，完全清理血条UI和所有相关资源
+            DestroyHealthBar();
         }
         
         /// <summary>
@@ -699,7 +698,8 @@ namespace HealthbarPlugin
                 {
                     // 使用默认材质
                     fillImage.sprite = null;
-                    fillImage.type = Image.Type.Simple;
+                    fillImage.type = Image.Type.Filled;
+                    fillImage.fillMethod = Image.FillMethod.Horizontal;
                 }
                 
                 // 重置填充区域的RectTransform
@@ -779,7 +779,8 @@ namespace HealthbarPlugin
                     
                     // 给填充区域应用纯色圆角纹理
                     fillImage.sprite = fillSprite;
-                    fillImage.type = Image.Type.Simple;
+                    fillImage.type = Image.Type.Filled;
+                    fillImage.fillMethod = Image.FillMethod.Horizontal;
                 }
                 
                 // 重置填充区域为完整大小
@@ -891,33 +892,61 @@ namespace HealthbarPlugin
         // 纹理缓存，避免重复创建相同的纹理
         private static Dictionary<string, Texture2D> textureCache = new Dictionary<string, Texture2D>();
         
+        // 缓存清理标志，防止意外清理
+        private static bool allowCacheClear = false;
+        
         /// <summary>
-        /// 清理纹理缓存，防止内存泄漏
+        /// 清理纹理缓存，防止内存泄漏（仅在插件卸载时调用）
         /// </summary>
         public static void ClearTextureCache()
         {
-            foreach (var texture in textureCache.Values)
+            if (!allowCacheClear)
             {
-                if (texture != null)
-                {
-                    UnityEngine.Object.DestroyImmediate(texture);
-                }
+                Plugin.logger.LogWarning("[EnemyHealthBar] 尝试清理纹理缓存被阻止，避免影响其他血条显示");
+                return;
             }
-            textureCache.Clear();
+            
+            if (textureCache != null)
+            {
+                foreach (var texture in textureCache.Values)
+                {
+                    if (texture != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(texture);
+                    }
+                }
+                textureCache.Clear();
+                Plugin.logger.LogInfo("[EnemyHealthBar] 纹理缓存已清理");
+            }
         }
         
         /// <summary>
-        /// 创建圆角纹理（带边框）- 使用高性能算法
+        /// 允许清理纹理缓存（仅在插件卸载时调用）
+        /// </summary>
+        public static void AllowCacheClear()
+        {
+            allowCacheClear = true;
+        }
+        
+        /// <summary>
+        /// 创建圆角纹理（带边框）- 使用高性能算法，带缓存恢复机制
         /// </summary>
         private Texture2D CreateRoundedTexture(int width, int height, int cornerRadius)
         {
             // 生成缓存键
             string cacheKey = $"rounded_{width}_{height}_{cornerRadius}";
             
-            // 检查缓存
-            if (textureCache.ContainsKey(cacheKey) && textureCache[cacheKey] != null)
+            // 检查缓存，如果缓存被意外清理则重建
+            if (textureCache != null && textureCache.ContainsKey(cacheKey) && textureCache[cacheKey] != null)
             {
                 return textureCache[cacheKey];
+            }
+            
+            // 如果缓存字典为null，重新初始化（防止意外清理导致的问题）
+            if (textureCache == null)
+            {
+                textureCache = new Dictionary<string, Texture2D>();
+                Plugin.logger.LogWarning("[EnemyHealthBar] 纹理缓存被意外清理，已重新初始化");
             }
             
             return CreateSimpleRoundedTexture(width, height, cornerRadius, cacheKey);
