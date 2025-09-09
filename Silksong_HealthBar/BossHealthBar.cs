@@ -405,7 +405,7 @@ namespace HealthbarPlugin
                 try
                 {
                     // 从对象中获取EnemyDeathEffectsRegular脚本
-                    var enemyDeathEffects = healthManager.gameObject.GetComponent<EnemyDeathEffectsRegular>();
+                    var enemyDeathEffects = healthManager.gameObject.GetComponent<EnemyDeathEffects>();
                     if (enemyDeathEffects != null && enemyDeathEffects.journalRecord != null)
                     {
                         var localizedName = enemyDeathEffects.journalRecord.displayName;
@@ -575,6 +575,16 @@ namespace HealthbarPlugin
                 // 更新血条百分比
                 float healthPercentage = maxHpEverReached > 0 ? (float)currentHp / maxHpEverReached : 0f;
                 healthBarSlider.value = healthPercentage;
+                
+                // 如果使用Image.Type.Filled模式（自定义材质），还需要直接设置fillAmount
+                if (healthBarSlider.fillRect != null)
+                {
+                    Image fillImage = healthBarSlider.fillRect.GetComponent<Image>();
+                    if (fillImage != null && fillImage.type == Image.Type.Filled)
+                    {
+                        fillImage.fillAmount = healthPercentage;
+                    }
+                }
                 
                 // 更新血量数值文本（如果配置启用且文本存在）
                 if (healthNumbersText != null && Plugin.ShowBossHealthBarNumbers.Value)
@@ -836,10 +846,9 @@ namespace HealthbarPlugin
                 }
                 else
                 {
-                    // 使用默认材质
+                    // 使用默认材质 - 保持Simple类型，让Unity Slider控制缩放
                     fillImage.sprite = null;
-                    fillImage.type = Image.Type.Filled;
-                    fillImage.fillMethod = Image.FillMethod.Horizontal;
+                    fillImage.type = Image.Type.Simple;
                 }
                 
                 // 重置填充区域的RectTransform

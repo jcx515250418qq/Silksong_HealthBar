@@ -474,6 +474,16 @@ namespace HealthbarPlugin
             // 使用Slider的value属性
             healthBarSlider.value = healthPercentage;
             
+            // 如果使用Image.Type.Filled模式（自定义材质），还需要直接设置fillAmount
+             if (healthBarSlider.fillRect != null)
+             {
+                 Image fillImage = healthBarSlider.fillRect.GetComponent<Image>();
+                 if (fillImage != null && fillImage.type == Image.Type.Filled)
+                 {
+                     fillImage.fillAmount = healthPercentage;
+                 }
+             }
+            
             // 更新数值文本
             if (healthNumbersText != null && Plugin.ShowHealthBarNumbers.Value)
             {
@@ -696,10 +706,9 @@ namespace HealthbarPlugin
                 }
                 else
                 {
-                    // 使用默认材质
+                    // 使用默认材质 - 保持Simple类型，让Unity Slider控制缩放
                     fillImage.sprite = null;
-                    fillImage.type = Image.Type.Filled;
-                    fillImage.fillMethod = Image.FillMethod.Horizontal;
+                    fillImage.type = Image.Type.Simple;
                 }
                 
                 // 重置填充区域的RectTransform

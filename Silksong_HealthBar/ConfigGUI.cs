@@ -471,7 +471,8 @@ namespace HealthbarPlugin
                 Plugin.HealthBarNumbersAutoWhiteOnLowHealth.Value = true;
                 Plugin.HealthBarFillMarginTop.Value = 2f;
                 Plugin.HealthBarFillMarginBottom.Value = 2f;
-                
+                Plugin.HealthBarBackgroundColor.Value = "#00000085";
+
                 // BOSS血条配置
                 Plugin.BossHealthThreshold.Value = 105;
                 Plugin.BossHealthBarFillColor.Value = "#beb8b8ff";

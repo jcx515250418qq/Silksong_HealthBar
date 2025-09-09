@@ -136,7 +136,7 @@ namespace HealthbarPlugin
             DamageTextUseSign = Config.Bind<bool>("DamageText", "UseSign", true, "伤害文本是否显示符号?(Plus:+, Minus:-) / Whether to show signs in damage text (Plus:+, Minus:-)");
             // 血条配置 / Health Bar Settings
             HealthBarFillColor = Config.Bind<string>("HealthBar", "FillColor", "#beb8b8ff", "血条填充颜色（十六进制格式，如#FF0000为红色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Health bar fill color (hex format, e.g. #FF0000 for red)");
-            HealthBarBackgroundColor = Config.Bind<string>("HealthBar", "BackgroundColor", "#000000ff", "血条背景颜色（十六进制格式，如#000000为黑色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Health bar background color (hex format, e.g. #000000 for black)");
+            HealthBarBackgroundColor = Config.Bind<string>("HealthBar", "BackgroundColor", "#00000085", "血条背景颜色（十六进制格式，如#000000为黑色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Health bar background color (hex format, e.g. #000000 for black)");
 
             HealthBarWidth = Config.Bind<float>("HealthBar", "Width", 135f, "血条宽度（像素） / Health bar width (pixels)");
             HealthBarHeight = Config.Bind<float>("HealthBar", "Height", 25f, "血条高度（像素） / Health bar height (pixels)");
