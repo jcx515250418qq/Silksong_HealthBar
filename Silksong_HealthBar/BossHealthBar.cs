@@ -107,7 +107,14 @@ namespace HealthbarPlugin
                 return;
             }
             
-          
+            // 检查BOSS是否死亡（血量为0或负数时隐藏血条并修正显示）
+            if (healthManager.hp <= 0)
+            {
+                currentHp = 0; // 确保显示血量为0而非负数
+                UpdateBossHealthBarDisplay(); // 更新显示
+                HideBossHealthBar();
+                return;
+            }
             
             if (player == null) return;
             
