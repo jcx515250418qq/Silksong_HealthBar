@@ -1,29 +1,5 @@
 # Changelog / 更新日志
 
-## Version 2.0.4
-
-### Updates / 更新内容
-
-1. **Boss Health Bar Auto-Hide / Boss血条自动隐藏**
-   - Automatically hide the health bar when BOSS health drops to 0 or below. Note that for certain BOSSes that transition between phases, you may need to attack them again to reactivate the health bar display.
-   - 当BOSS血量小于等于0时,自动隐藏血条。但是需要注意的是,某些BOSS转阶段后,需要重新攻击它来激活血条。
-
----
-
-## Version 2.0.3
-
-### Updates / 更新内容
-
-1. **Silk Mother Boss Fix / 苍白之母Boss修复**
-   - Completely fixed the health display issue of "Silk Mother" (Silk Mother). The current version can correctly display its health, but note that when this BOSS's health is less than or equal to 0, it needs to take damage again to enter the next phase.
-   - 彻底修复了"苍白之母"(Silk Mother)的血量显示异常,当前版本可以正确的显示其血量,但是注意的是,该BOSS在血量低于等于0时,需要再次受到伤害才会进入下一阶段.
-
-2. **Performance Optimization / 性能优化**
-   - Create health bar components for BOSSes when scenes load, but keep them hidden temporarily to avoid slight stuttering that might occur when creating health bars for the first time when attacking BOSSes.
-   - 在场景加载时就为BOSS创建血条组件,只是暂时隐藏,避免了首次攻击BOSS时临时创建血条可能会造成的轻微卡顿.
-
----
-
 ## Version 2.0.2
 
 ### Updates / 更新内容

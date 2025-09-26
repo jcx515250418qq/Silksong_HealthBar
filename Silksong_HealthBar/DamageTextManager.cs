@@ -5,7 +5,6 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Linq;
 using BepInEx.Logging;
-using TeamCherry.Localization;
 
 namespace HealthbarPlugin
 {
@@ -69,18 +68,10 @@ namespace HealthbarPlugin
         {
             try
             {
-                if (Language.CurrentLanguage() == LanguageCode.ZH)
-                {
-                    damageFont = Resources.GetBuiltinResource<Font>("Arial.ttf");
-                    return;
-                }
-               var obj1 =new    GameObject("MyEnemy");
-               
-
                 //  查找所有字体
                 Font[] allFonts = Resources.FindObjectsOfTypeAll<Font>();
                 damageFont = allFonts.FirstOrDefault(f => f.name.Contains("TrajanPro-Regular"));
-              
+
                
                 if (damageFont==null)
                 {

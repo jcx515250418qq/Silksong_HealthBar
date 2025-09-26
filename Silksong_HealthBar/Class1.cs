@@ -20,7 +20,7 @@ namespace HealthbarPlugin
 
         public const string PLUGIN_GUID = "com.Xiaohai.HealthbarAndDamageShow";
         public const string PLUGIN_NAME = "Healthbar&DamageShow";
-        public const string PLUGIN_VERSION = "2.0.4";
+        public const string PLUGIN_VERSION = "2.0.2";
 
 
         public static Plugin Instance { get; private set; }
