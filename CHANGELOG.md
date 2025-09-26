@@ -1,5 +1,15 @@
 # Changelog / 更新日志
 
+## Version 2.0.4
+
+### Updates / 更新内容
+
+1. **Boss Health Bar Auto-Hide / Boss血条自动隐藏**
+   - Automatically hide the health bar when BOSS health drops to 0 or below. Note that for certain BOSSes that transition between phases, you may need to attack them again to reactivate the health bar display.
+   - 当BOSS血量小于等于0时,自动隐藏血条。但是需要注意的是,某些BOSS转阶段后,需要重新攻击它来激活血条。
+
+---
+
 ## Version 2.0.3
 
 ### Updates / 更新内容
