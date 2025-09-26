@@ -37,8 +37,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-nstrip_Silksong">
-      <HintPath>C:\Users\Administrator\Desktop\Mod制作\NSTRIP DLL\Assembly-CSharp-nstrip_Silksong.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\桌面\Mod制作\NSTRIP DLL\Assembly-CSharp-nstrip_Silksong.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>D:\GAME\Hollow Knight Silksong\BepInEx\core\BepInEx.dll</HintPath>

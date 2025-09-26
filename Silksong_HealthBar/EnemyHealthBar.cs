@@ -34,6 +34,13 @@ namespace HealthbarPlugin
         // 血条激活状态
         private bool healthBarActivated = false;
         
+        // 性能优化相关
+        private float updateInterval = 0.1f; // 每0.1秒更新一次，减少Update频率
+        private float lastUpdateTime;
+        private float distanceCheckInterval = 0.2f; // 距离检查间隔
+        private float lastDistanceCheckTime;
+        private bool wasInRange = false; // 缓存上次是否在范围内，避免频繁切换
+        
         // 血量变化检测计时器
         private float lastHealthChangeTime;
         private int lastRecordedHp;
@@ -59,8 +66,8 @@ namespace HealthbarPlugin
                 healthBarNumbersColor = numbersColor; 
             }
              
-            // 初始化组件引用
-            player = GameObject.FindFirstObjectByType<HeroController>();
+            // 初始化组件引用 - 延迟获取HeroController以避免性能问题
+            // player = GameObject.FindFirstObjectByType<HeroController>(); // 移到Update中按需获取
             healthManager = GetComponent<HealthManager>();
             
             if (healthManager == null)
@@ -176,11 +183,31 @@ namespace HealthbarPlugin
         
         private void Update()
         {
+            // 血条位置更新不受帧率限制，确保跟随流畅
+            UpdateHealthBarPosition();
+            
+            // 其他逻辑限制Update频率以优化性能
+            if (Time.time - lastUpdateTime < updateInterval)
+            {
+                return;
+            }
+            lastUpdateTime = Time.time;
+            
             // 基础状态检查
-            if (healthManager == null || player == null)
+            if (healthManager == null)
             {
                 HideHealthBar();
                 return;
+            }
+            
+            // 延迟获取player引用，避免Start时的性能问题
+            if (player == null)
+            {
+                player = GameObject.FindFirstObjectByType<HeroController>();
+                if (player == null)
+                {
+                    return; // 如果还是null，跳过这一帧
+                }
             }
             
             // 检查敌人是否死亡（血量为0时隐藏血条）
@@ -193,12 +220,10 @@ namespace HealthbarPlugin
             // 简化的碰撞体组件检测：如果碰撞体被禁用则隐藏血条
             if (healthBarActivated && cachedCollider2D != null && !cachedCollider2D.enabled)
             {
-
                 HideHealthBar();
                 return;
             }
             
-
             // 检查血量变化
             if (currentHp != healthManager.hp)
             {
@@ -212,8 +237,6 @@ namespace HealthbarPlugin
                 // 检测怪物复活：从0血量变为正数血量
                 if (previousHp <= 0 && currentHp > 0)
                 {
-    
-                    
                     // 复活时重新显示血条（如果已激活过）
                     if (healthBarActivated && healthBarUI != null)
                     {
@@ -270,13 +293,13 @@ namespace HealthbarPlugin
                 float timeSinceLastChange = Time.time - lastHealthChangeTime;
                 if (timeSinceLastChange >= Plugin.HealthBarHideDelay.Value)
                 {
-                    // 血量在指定时间内没有变化，隐藏血条
+                    // 血量在指定时间内没有变化，隐藏血条但保持激活状态
                     healthBarUI.SetActive(false);
                     if (healthNumbersCanvas != null)
                     {
                         healthNumbersCanvas.SetActive(false);
                     }
-                    healthBarActivated = false; // 重置激活状态，允许下次受击时重新显示
+                    // 不重置healthBarActivated状态，保持激活以便下次受击时重新显示
                     return;
                 }
             }
@@ -284,53 +307,50 @@ namespace HealthbarPlugin
             // 检查距离和血条显示
             if (healthBarActivated && healthBarUI != null)
             {
-                // 更新血条位置，确保跟随敌人但保持世界方向
-                Vector3 worldPos = transform.position + new Vector3(healthBarOffset.x, healthBarOffset.y, 0);
-                healthBarUI.transform.position = worldPos;
                 
-                // 强制重置旋转，确保血条始终保持世界坐标的正确方向
-                healthBarUI.transform.rotation = Quaternion.identity;
-                
-                // 更新血量文本Canvas位置（如果存在）
-                if (healthNumbersText != null && healthNumbersCanvas != null)
+                // 优化距离检查：降低检查频率并添加缓存
+                if (Time.time - lastDistanceCheckTime >= distanceCheckInterval)
                 {
-                    float verticalOffset = Plugin.HealthBarNumbersVerticalOffset.Value;
-                    Vector3 textWorldPos = transform.position + new Vector3(healthBarOffset.x, healthBarOffset.y + verticalOffset, 0);
-                    healthNumbersCanvas.transform.position = textWorldPos;
-                    healthNumbersCanvas.transform.rotation = Quaternion.identity;
-                }
-                
-                // 使用平方距离比较避免开方运算
-                float sqrDistance = (transform.position - player.transform.position).sqrMagnitude;
-                bool shouldShow = sqrDistance <= (maxDisplayDistance * maxDisplayDistance) && currentHp > 0;
-                
-                // 根据距离控制血条显示/隐藏
-                if (shouldShow)
-                {
-                    if (!healthBarUI.activeSelf)
-                    {
-                        healthBarUI.SetActive(true);
-                    }
+                    lastDistanceCheckTime = Time.time;
                     
-                    // 同时控制血量文本的显示
-                    if (healthNumbersText != null && healthNumbersCanvas != null && Plugin.ShowHealthBarNumbers.Value)
+                    // 使用平方距离比较避免开方运算
+                    float sqrDistance = (transform.position - player.transform.position).sqrMagnitude;
+                    bool shouldShow = sqrDistance <= (maxDisplayDistance * maxDisplayDistance) && currentHp > 0;
+                    
+                    // 只在状态变化时才更新UI，避免频繁切换
+                    if (shouldShow != wasInRange)
                     {
-                        if (!healthNumbersCanvas.activeSelf)
+                        wasInRange = shouldShow;
+                        
+                        // 根据距离控制血条显示/隐藏
+                        if (shouldShow)
                         {
-                            healthNumbersCanvas.SetActive(true);
+                            if (!healthBarUI.activeSelf)
+                            {
+                                healthBarUI.SetActive(true);
+                            }
+                            
+                            // 同时控制血量文本的显示
+                            if (healthNumbersText != null && healthNumbersCanvas != null && Plugin.ShowHealthBarNumbers.Value)
+                            {
+                                if (!healthNumbersCanvas.activeSelf)
+                                {
+                                    healthNumbersCanvas.SetActive(true);
+                                }
+                            }
                         }
-                    }
-                }
-                else
-                {
-                    if (healthBarUI.activeSelf)
-                    {
-                        healthBarUI.SetActive(false);
-                    }
-                    
-                    if (healthNumbersText != null && healthNumbersCanvas != null && healthNumbersCanvas.activeSelf)
-                    {
-                        healthNumbersCanvas.SetActive(false);
+                        else
+                        {
+                            if (healthBarUI.activeSelf)
+                            {
+                                healthBarUI.SetActive(false);
+                            }
+                            
+                            if (healthNumbersText != null && healthNumbersCanvas != null && healthNumbersCanvas.activeSelf)
+                            {
+                                healthNumbersCanvas.SetActive(false);
+                            }
+                        }
                     }
                 }
             }
@@ -474,13 +494,22 @@ namespace HealthbarPlugin
             // 使用Slider的value属性
             healthBarSlider.value = healthPercentage;
             
-            // 如果使用Image.Type.Filled模式（自定义材质），还需要直接设置fillAmount
+            // 对于圆角血条，需要直接设置fillAmount来确保正确显示
              if (healthBarSlider.fillRect != null)
              {
                  Image fillImage = healthBarSlider.fillRect.GetComponent<Image>();
-                 if (fillImage != null && fillImage.type == Image.Type.Filled)
+                 if (fillImage != null)
                  {
-                     fillImage.fillAmount = healthPercentage;
+                     // 检查是否为圆角血条模式 (2 = RoundedRectangle)
+                      bool isRoundedCorner = Plugin.HealthBarShape.Value == 2;
+                     
+                     // 对于圆角血条或Image.Type.Filled模式，都需要设置fillAmount
+                     if (isRoundedCorner || fillImage.type == Image.Type.Filled)
+                     {
+                         fillImage.fillAmount = healthPercentage;
+                         
+
+                     }
                  }
              }
             
@@ -517,8 +546,7 @@ namespace HealthbarPlugin
                 }
             }
             
-            // 强制刷新UI
-            Canvas.ForceUpdateCanvases();
+           
         }
         
        
@@ -553,10 +581,22 @@ namespace HealthbarPlugin
             lastHealthChangeTime = Time.time;
             lastRecordedHp = healthManager.hp;
             
-            // 只激活血条，不重复创建UI（UI已在Start中预创建）
+            // 激活血条并强制显示（UI已在Start中预创建）
             if (!healthBarActivated)
             {
                 healthBarActivated = true;
+            }
+            
+            // 强制显示血条UI（即使之前被隐藏）
+            if (healthBarUI != null && !healthBarUI.activeSelf)
+            {
+                healthBarUI.SetActive(true);
+            }
+            
+            // 强制显示血量数值文本（如果配置启用）
+            if (Plugin.ShowHealthBarNumbers.Value && healthNumbersCanvas != null && !healthNumbersCanvas.activeSelf)
+            {
+                healthNumbersCanvas.SetActive(true);
             }
         }
         
@@ -667,6 +707,17 @@ namespace HealthbarPlugin
         /// </summary>
         private void ApplyHealthBarShape(Image backgroundImage, Image fillImage)
         {
+            // 检查是否使用自定义材质
+            Sprite customSprite = CustomTextureManager.GetEnemyHealthBarTexture();
+            
+            // 如果是原始材质，强制使用长方形样式
+            if (customSprite == null)
+            {
+                ApplyDefaultShape(backgroundImage, fillImage);
+                return;
+            }
+            
+            // 有自定义材质时，根据配置选择形状
             int shapeType = Plugin.HealthBarShape.Value;
             
             switch (shapeType)
@@ -677,11 +728,10 @@ namespace HealthbarPlugin
                     break;
                     
                 case 2: // 圆角
-                ApplyRoundedShape(backgroundImage, fillImage);
-                break;
+                    ApplyRoundedShape(backgroundImage, fillImage);
+                    break;
                     
                 default:
-    
                     ApplyDefaultShape(backgroundImage, fillImage);
                     break;
             }
@@ -750,17 +800,39 @@ namespace HealthbarPlugin
                     backgroundImage.sprite = backgroundSprite;
                     backgroundImage.type = Image.Type.Simple;
                     
-                    // 添加Mask组件到背景，使填充只在背景形状内显示
-                    Mask maskComponent = backgroundImage.GetComponent<Mask>();
+                    // 添加Mask组件到sliderObj，使填充只在背景形状内显示
+                    // 首先需要给sliderObj添加Image组件作为遮罩
+                    Image sliderImage = healthBarSlider.GetComponent<Image>();
+                    if (sliderImage == null)
+                    {
+                        sliderImage = healthBarSlider.gameObject.AddComponent<Image>();
+                    }
+                    sliderImage.sprite = backgroundSprite;
+                    sliderImage.type = Image.Type.Simple;
+                    
+                    Mask maskComponent = healthBarSlider.GetComponent<Mask>();
                     if (maskComponent == null)
                     {
-                        maskComponent = backgroundImage.gameObject.AddComponent<Mask>();
+                        maskComponent = healthBarSlider.gameObject.AddComponent<Mask>();
                     }
-                    maskComponent.showMaskGraphic = true; // 显示遮罩图形（背景）
+                    maskComponent.showMaskGraphic = true; // 显示遮罩图形
                     
                     // 应用自定义材质到填充区域
                     CustomTextureManager.ApplyCustomTexture(fillImage, customSprite, healthBarSize);
+                    
+                    // 确保fillImage在Mask环境下能正确响应fillAmount变化
+                    // 设置fillImage的RectTransform以确保正确的裁切行为
+                    RectTransform fillImageRect = fillImage.GetComponent<RectTransform>();
+                    if (fillImageRect != null)
+                    {
+                        fillImageRect.anchorMin = new Vector2(0, 0);
+                        fillImageRect.anchorMax = new Vector2(1, 1);
+                        fillImageRect.offsetMin = Vector2.zero;
+                        fillImageRect.offsetMax = Vector2.zero;
+                    }
                 }
+                // 注释掉原始材质圆角相关代码 - 原始材质强制使用长方形样式
+                /*
                 else
                 {
                     // 没有自定义材质，使用原来的圆角纹理方式
@@ -771,36 +843,34 @@ namespace HealthbarPlugin
                     Texture2D backgroundTexture = CreateRoundedTexture(textureWidth, textureHeight, Plugin.HealthBarCornerRadius.Value);
                     Sprite backgroundSprite = Sprite.Create(backgroundTexture, new Rect(0, 0, textureWidth, textureHeight), new Vector2(0.5f, 0.5f));
                     
-                    // 为填充区域创建纯色圆角纹理（无边框）
-                    Texture2D fillTexture = CreatePureFillTexture(textureWidth, textureHeight, Plugin.HealthBarCornerRadius.Value);
-                    Sprite fillSprite = Sprite.Create(fillTexture, new Rect(0, 0, textureWidth, textureHeight), new Vector2(0.5f, 0.5f));
-                    
                     // 应用圆角纹理到背景
                     backgroundImage.sprite = backgroundSprite;
                     backgroundImage.type = Image.Type.Simple;
                     
-                    // 移除Mask组件（如果存在）
+                    // 添加Mask组件到背景，使填充只在背景形状内显示
                     Mask maskComponent = backgroundImage.GetComponent<Mask>();
-                    if (maskComponent != null)
+                    if (maskComponent == null)
                     {
-                        UnityEngine.Object.DestroyImmediate(maskComponent);
+                        maskComponent = backgroundImage.gameObject.AddComponent<Mask>();
                     }
+                    maskComponent.showMaskGraphic = true; // 显示遮罩图形（背景）
                     
-                    // 给填充区域应用纯色圆角纹理
-                    fillImage.sprite = fillSprite;
+                    // 填充区域保持默认矩形形状，使用Filled类型配合fillAmount
+                    fillImage.sprite = null;
                     fillImage.type = Image.Type.Filled;
                     fillImage.fillMethod = Image.FillMethod.Horizontal;
+                    
+                    // 重置填充区域的RectTransform
+                    RectTransform fillRect = fillImage.GetComponent<RectTransform>();
+                    if (fillRect != null)
+                    {
+                        fillRect.anchorMin = new Vector2(0, 0);
+                        fillRect.anchorMax = new Vector2(1, 1);
+                        fillRect.offsetMin = Vector2.zero;
+                        fillRect.offsetMax = Vector2.zero;
+                    }
                 }
-                
-                // 重置填充区域为完整大小
-                RectTransform fillRect = fillImage.GetComponent<RectTransform>();
-                if (fillRect != null)
-                {
-                    fillRect.anchorMin = new Vector2(0, 0);
-                    fillRect.anchorMax = new Vector2(1, 1);
-                    fillRect.offsetMin = Vector2.zero;
-                    fillRect.offsetMax = Vector2.zero;
-                }
+                */
             }
             catch (System.Exception e)
             {
@@ -1052,6 +1122,31 @@ namespace HealthbarPlugin
             return texture;
         }
         
+        /// <summary>
+        /// 更新血条位置，每帧调用确保跟随流畅
+        /// </summary>
+        private void UpdateHealthBarPosition()
+        {
+            // 只有在血条激活且UI存在时才更新位置
+            if (healthBarActivated && healthBarUI != null)
+            {
+                // 更新血条位置，确保跟随敌人但保持世界方向
+                Vector3 worldPos = transform.position + new Vector3(healthBarOffset.x, healthBarOffset.y, 0);
+                healthBarUI.transform.position = worldPos;
+                
+                // 强制重置旋转，确保血条始终保持世界坐标的正确方向
+                healthBarUI.transform.rotation = Quaternion.identity;
+                
+                // 更新血量文本Canvas位置（如果存在）
+                if (healthNumbersText != null && healthNumbersCanvas != null)
+                {
+                    float verticalOffset = Plugin.HealthBarNumbersVerticalOffset.Value;
+                    Vector3 textWorldPos = transform.position + new Vector3(healthBarOffset.x, healthBarOffset.y + verticalOffset, 0);
+                    healthNumbersCanvas.transform.position = textWorldPos;
+                    healthNumbersCanvas.transform.rotation = Quaternion.identity;
+                }
+            }
+        }
 
     }
 }

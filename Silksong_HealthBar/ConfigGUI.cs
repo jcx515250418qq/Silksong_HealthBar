@@ -127,6 +127,8 @@ namespace HealthbarPlugin
             {"custom_texture_settings_en", "=== Custom Texture Settings ==="},
             {"use_custom_textures_cn", "启用自定义血条材质"},
             {"use_custom_textures_en", "Enable Custom Health Bar Textures"},
+            {"use_custom_boss_background_cn", "启用自定义BOSS血条背景"},
+            {"use_custom_boss_background_en", "Enable Custom Boss Background"},
             {"custom_texture_scale_mode_cn", "材质缩放模式"},
             {"custom_texture_scale_mode_en", "Texture Scale Mode"},
             {"scale_mode_stretch_cn", "拉伸适应"},
@@ -135,8 +137,8 @@ namespace HealthbarPlugin
             {"scale_mode_aspect_en", "Keep Aspect Ratio"},
             {"reload_textures_cn", "重新加载材质"},
             {"reload_textures_en", "Reload Textures"},
-            {"texture_path_info_cn", "材质路径: DLL目录/Texture/\nHpBar.png (敌人) | HpBar_Boss.png (BOSS)"},
-            {"texture_path_info_en", "Texture Path: DLL Directory/Texture/\nHpBar.png (Enemy) | HpBar_Boss.png (Boss)"},
+            {"texture_path_info_cn", "材质路径: DLL目录/Texture/\nHpBar.png (敌人) | HpBar_Boss.png (BOSS) | BG_Boss.png (BOSS背景)"},
+            {"texture_path_info_en", "Texture Path: DLL Directory/Texture/\nHpBar.png (Enemy) | HpBar_Boss.png (Boss) | BG_Boss.png (Boss Background)"},
             
             // 性能优化
             {"performance_settings_cn", "=== 性能优化配置 ==="},
@@ -154,7 +156,10 @@ namespace HealthbarPlugin
             
             // 单位
             {"seconds_cn", "秒"},
-            {"seconds_en", "s"}
+            {"seconds_en", "s"},
+
+            {"display_tips_cn","提示:如果开关失效,可以将对应组件颜色改为#00000000达到隐藏的效果" },
+            {"display_tips_en","Tip: If toggles don't work, you can change the component color to #00000000 to hide it" }
         };
         
         private string GetText(string key)
@@ -192,7 +197,9 @@ namespace HealthbarPlugin
                 isEnglish = true;
             }
             GUILayout.EndHorizontal();
-            
+
+            GUILayout.Label(GetText("display_tips"));
+
             GUILayout.Space(5);
             
             scrollPosition = GUILayout.BeginScrollView(scrollPosition);
@@ -262,18 +269,38 @@ namespace HealthbarPlugin
             
             // 敌人血条形状选择
             GUILayout.Label(GetText("healthbar_shape"));
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(Plugin.HealthBarShape.Value == 1, GetText("shape_rectangle")))
-                Plugin.HealthBarShape.Value = 1;
-            if (GUILayout.Toggle(Plugin.HealthBarShape.Value == 2, GetText("shape_rounded")))
-                Plugin.HealthBarShape.Value = 2;
-            GUILayout.EndHorizontal();
             
-            // 敌人血条圆角半径（仅在圆角模式下显示）
-            if (Plugin.HealthBarShape.Value == 2)
+            // 检查是否使用自定义材质
+            bool hasCustomTexture = CustomTextureManager.GetEnemyHealthBarTexture() != null;
+            
+            if (!hasCustomTexture)
             {
-                GUILayout.Label($"{GetText("corner_radius")}: {Plugin.HealthBarCornerRadius.Value}");
-                Plugin.HealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.HealthBarCornerRadius.Value, 5, 50);
+                // 原始材质时显示提示并禁用圆角选项
+                GUILayout.Label("(原始材质仅支持长方形样式)", GUI.skin.box);
+                GUILayout.BeginHorizontal();
+                GUILayout.Toggle(true, GetText("shape_rectangle")); // 强制选中长方形
+                GUI.enabled = false; // 禁用圆角选项
+                GUILayout.Toggle(false, GetText("shape_rounded"));
+                GUI.enabled = true; // 恢复GUI状态
+                GUILayout.EndHorizontal();
+                Plugin.HealthBarShape.Value = 1; // 强制设为长方形
+            }
+            else
+            {
+                // 有自定义材质时正常显示选项
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Toggle(Plugin.HealthBarShape.Value == 1, GetText("shape_rectangle")))
+                    Plugin.HealthBarShape.Value = 1;
+                if (GUILayout.Toggle(Plugin.HealthBarShape.Value == 2, GetText("shape_rounded")))
+                    Plugin.HealthBarShape.Value = 2;
+                GUILayout.EndHorizontal();
+                
+                // 敌人血条圆角半径（仅在圆角模式下显示）
+                if (Plugin.HealthBarShape.Value == 2)
+                {
+                    GUILayout.Label($"{GetText("corner_radius")}: {Plugin.HealthBarCornerRadius.Value}");
+                    Plugin.HealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.HealthBarCornerRadius.Value, 5, 50);
+                }
             }
             
             GUILayout.Space(10);
@@ -319,18 +346,38 @@ namespace HealthbarPlugin
             
             // BOSS血条形状选择
             GUILayout.Label(GetText("boss_healthbar_shape"));
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(Plugin.BossHealthBarShape.Value == 1, GetText("shape_rectangle")))
-                Plugin.BossHealthBarShape.Value = 1;
-            if (GUILayout.Toggle(Plugin.BossHealthBarShape.Value == 2, GetText("shape_rounded")))
-                Plugin.BossHealthBarShape.Value = 2;
-            GUILayout.EndHorizontal();
             
-            // BOSS血条圆角半径（仅在圆角模式下显示）
-            if (Plugin.BossHealthBarShape.Value == 2)
+            // 检查是否使用自定义材质
+            bool hasBossCustomTexture = CustomTextureManager.GetBossHealthBarTexture() != null;
+            
+            if (!hasBossCustomTexture)
             {
-                GUILayout.Label($"{GetText("boss_corner_radius")}: {Plugin.BossHealthBarCornerRadius.Value}");
-                Plugin.BossHealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.BossHealthBarCornerRadius.Value, 5, 50);
+                // 原始材质时显示提示并禁用圆角选项
+                GUILayout.Label("(原始材质仅支持长方形样式)", GUI.skin.box);
+                GUILayout.BeginHorizontal();
+                GUILayout.Toggle(true, GetText("shape_rectangle")); // 强制选中长方形
+                GUI.enabled = false; // 禁用圆角选项
+                GUILayout.Toggle(false, GetText("shape_rounded"));
+                GUI.enabled = true; // 恢复GUI状态
+                GUILayout.EndHorizontal();
+                Plugin.BossHealthBarShape.Value = 1; // 强制设为长方形
+            }
+            else
+            {
+                // 有自定义材质时正常显示选项
+                GUILayout.BeginHorizontal();
+                if (GUILayout.Toggle(Plugin.BossHealthBarShape.Value == 1, GetText("shape_rectangle")))
+                    Plugin.BossHealthBarShape.Value = 1;
+                if (GUILayout.Toggle(Plugin.BossHealthBarShape.Value == 2, GetText("shape_rounded")))
+                    Plugin.BossHealthBarShape.Value = 2;
+                GUILayout.EndHorizontal();
+                
+                // BOSS血条圆角半径（仅在圆角模式下显示）
+                if (Plugin.BossHealthBarShape.Value == 2)
+                {
+                    GUILayout.Label($"{GetText("boss_corner_radius")}: {Plugin.BossHealthBarCornerRadius.Value}");
+                    Plugin.BossHealthBarCornerRadius.Value = (int)GUILayout.HorizontalSlider(Plugin.BossHealthBarCornerRadius.Value, 5, 50);
+                }
             }
             
 
@@ -339,6 +386,8 @@ namespace HealthbarPlugin
             GUILayout.Label(GetText("custom_texture_settings"), GUI.skin.box);
             
             Plugin.UseCustomTextures.Value = GUILayout.Toggle(Plugin.UseCustomTextures.Value, GetText("use_custom_textures"));
+            
+            Plugin.UseCustomBossBackground.Value = GUILayout.Toggle(Plugin.UseCustomBossBackground.Value, GetText("use_custom_boss_background"));
             
             if (Plugin.UseCustomTextures.Value)
             {
@@ -499,6 +548,7 @@ namespace HealthbarPlugin
                 
                 // 自定义材质配置
                 Plugin.UseCustomTextures.Value = false;
+                Plugin.UseCustomBossBackground.Value = false;
                 Plugin.CustomTextureScaleMode.Value = 1;
                 
 

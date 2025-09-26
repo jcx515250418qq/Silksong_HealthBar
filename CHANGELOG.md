@@ -1,5 +1,25 @@
 # Changelog / 更新日志
 
+## Version 2.0.2
+
+### Updates / 更新内容
+
+1. **Silk Mother Boss Adaptation / 苍白之母Boss适配**
+   - Added specialized adaptation for "Silk Mother" Boss health mechanism
+   - 新增了对"苍白之母( Silk Mother )"Boss血量机制的专门适配
+
+2. **Performance Optimization / 性能优化**
+   - Fixed stuttering issues in certain areas
+   - 修复了部分区域异常卡顿的问题
+
+3. **UI Improvements / 界面改进**
+   - Temporarily disabled rounded corner style selection for original textures
+   - Fixed abnormal BOSS name display issues in certain areas
+   - 暂时禁止了原始材质下圆角样式的选择
+   - 修复了部分区域BOSS名字显示异常的问题
+
+---
+
 ## Version 2.0.0
 
 ### Major Updates / 重大更新

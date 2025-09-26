@@ -11,6 +11,10 @@ namespace HealthbarPlugin
         // 存储所有活跃的BOSS血条实例
         private static List<BossHealthBar> activeBossHealthBars = new List<BossHealthBar>();
         
+        // 性能优化：避免频繁重计算
+        private static float lastRecalculateTime = 0f;
+        private static float recalculateInterval = 0.1f; // 限制重计算频率
+        
         // BOSS血条的基础配置
         private const float BASE_Y_OFFSET = 60f; // 基础Y偏移
         private const float HEALTH_BAR_HEIGHT = 40f; // 血条高度
@@ -150,10 +154,17 @@ namespace HealthbarPlugin
         }
         
         /// <summary>
-        /// 重新计算所有BOSS血条的位置
+        /// 重新计算所有BOSS血条的位置（性能优化版本）
         /// </summary>
         private static void RecalculateAllPositions()
         {
+            // 性能优化：限制重计算频率
+            if (Time.time - lastRecalculateTime < recalculateInterval)
+            {
+                return;
+            }
+            lastRecalculateTime = Time.time;
+            
             // 清理无效的引用
             activeBossHealthBars.RemoveAll(bar => bar == null || bar.gameObject == null);
             
@@ -165,11 +176,6 @@ namespace HealthbarPlugin
                 {
                     bossHealthBar.UpdatePosition();
                 }
-            }
-            
-            if (activeBossHealthBars.Count > 1)
-            {
-    
             }
         }
         

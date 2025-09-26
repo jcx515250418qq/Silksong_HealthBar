@@ -32,6 +32,10 @@ namespace HealthbarPlugin
         private List<GameObject> activeDamageTexts = new List<GameObject>();
         private Font damageFont;
         
+        // 性能优化变量
+        private float lastUpdateTime = 0f;
+        private float updateInterval = 0.016f; // 约60FPS
+        
         // 公共属性，供其他类访问统一字体
         public static Font SharedFont
         {

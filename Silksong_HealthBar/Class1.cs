@@ -20,7 +20,7 @@ namespace HealthbarPlugin
 
         public const string PLUGIN_GUID = "com.Xiaohai.HealthbarAndDamageShow";
         public const string PLUGIN_NAME = "Healthbar&DamageShow";
-        public const string PLUGIN_VERSION = "2.0.0";
+        public const string PLUGIN_VERSION = "2.0.2";
 
 
         public static Plugin Instance { get; private set; }
@@ -83,7 +83,8 @@ namespace HealthbarPlugin
         // 自定义材质配置
         public static ConfigEntry<bool> UseCustomTextures;
         public static ConfigEntry<int> CustomTextureScaleMode;
-        
+        public static ConfigEntry<bool> UseCustomBossBackground;
+
 
 
 
@@ -155,7 +156,7 @@ namespace HealthbarPlugin
             // BOSS血条配置 / Boss Health Bar Settings
             BossHealthThreshold = Config.Bind<int>("BossHealthBar", "HealthThreshold", 105, "BOSS血量阈值（血量大于此值时显示BOSS血条而非普通血条） / Boss health threshold (show boss health bar instead of normal health bar when HP exceeds this value)");
             BossHealthBarFillColor = Config.Bind<string>("BossHealthBar", "FillColor", "#beb8b8ff", "BOSS血条填充颜色（十六进制格式，如#FF0000为红色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss health bar fill color (hex format, e.g. #FF0000 for red)");
-            BossHealthBarBackgroundColor = Config.Bind<string>("BossHealthBar", "BackgroundColor", "#000000ff", "BOSS血条背景颜色（十六进制格式，如#000000为黑色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss health bar background color (hex format, e.g. #000000 for black)");
+            BossHealthBarBackgroundColor = Config.Bind<string>("BossHealthBar", "BackgroundColor", "#FFFFFF50", "BOSS血条背景颜色（十六进制格式，如#000000为黑色）颜色十六进制代码转换:http://pauli.cn/tool/color.htm / Boss health bar background color (hex format, e.g. #000000 for black)");
             BossHealthBarWidth = Config.Bind<float>("BossHealthBar", "Width", 900, "BOSS血条宽度（像素） / Boss health bar width (pixels)");
             BossHealthBarHeight = Config.Bind<float>("BossHealthBar", "Height", 25f, "BOSS血条高度（像素） / Boss health bar height (pixels)");
             BossHealthBarBottomPosition = Config.Bind<bool>("BossHealthBar", "BottomPosition", true, "BOSS血条位置（true=屏幕下方中间，false=屏幕上方中间） / Boss health bar position (true=bottom center of screen, false=top center of screen)");
@@ -181,6 +182,7 @@ namespace HealthbarPlugin
             // 自定义材质配置 / Custom Texture Settings
             UseCustomTextures = Config.Bind<bool>("CustomTexture", "Enabled", false, "是否启用自定义血条材质（从DLL目录/Texture/文件夹加载） / Enable custom health bar textures (load from DLL directory/Texture/ folder)");
             CustomTextureScaleMode = Config.Bind<int>("CustomTexture", "ScaleMode", 1, "自定义材质缩放模式（1=拉伸适应，2=保持比例） / Custom texture scale mode (1=Stretch to fit, 2=Keep aspect ratio)");
+            UseCustomBossBackground = Config.Bind<bool>("CustomTexture", "BossBackgroundEnabled", false, "是否启用自定义BOSS血条背景材质（从DLL目录/Texture/BG_Boss.png加载） / Enable custom boss health bar background texture (load from DLL directory/Texture/BG_Boss.png)");
             
 
             
@@ -200,6 +202,10 @@ namespace HealthbarPlugin
         [HarmonyPatch(typeof(HealthManager))]
         public static class HealthManager_Patch
         {
+            // 缓存HeroController引用，避免频繁的FindFirstObjectByType调用
+            private static HeroController cachedHeroController;
+            private static float lastHeroControllerCacheTime;
+            private const float HERO_CONTROLLER_CACHE_DURATION = 1.0f; // 缓存1秒
 
             // 使用组件缓存方案替代字典，性能更优且自动清理
 
@@ -243,17 +249,24 @@ namespace HealthbarPlugin
                 }
                 healthTracker.lastHp = __instance.hp;
 
-                // 记录最大血量（受伤前的血量）
-                var enemyHealthBar = __instance.gameObject.GetComponent<EnemyHealthBar>();
-                if (enemyHealthBar != null)
+                // 记录最大血量（受伤前的血量）- 优化：减少GetComponent调用
+                if (__instance.hp > Plugin.BossHealthThreshold.Value)
                 {
-                    enemyHealthBar.RecordMaxHealth(__instance.hp);
+                    // BOSS血条
+                    var bossHealthBar = __instance.gameObject.GetComponent<BossHealthBar>();
+                    if (bossHealthBar != null)
+                    {
+                        bossHealthBar.RecordMaxHealth(__instance.hp);
+                    }
                 }
-
-                var bossHealthBar = __instance.gameObject.GetComponent<BossHealthBar>();
-                if (bossHealthBar != null)
+                else
                 {
-                    bossHealthBar.RecordMaxHealth(__instance.hp);
+                    // 普通敌人血条
+                    var enemyHealthBar = __instance.gameObject.GetComponent<EnemyHealthBar>();
+                    if (enemyHealthBar != null)
+                    {
+                        enemyHealthBar.RecordMaxHealth(__instance.hp);
+                    }
                 }
             }
 
@@ -263,8 +276,8 @@ namespace HealthbarPlugin
             {
                 if (__instance.initHp > Plugin.BossMaxHealth.Value || __instance.hp > Plugin.BossMaxHealth.Value) return;
 
-                // 检查玩家距离
-                var player = GameObject.FindFirstObjectByType<HeroController>();
+                // 使用缓存的HeroController，避免频繁的FindFirstObjectByType调用
+                var player = GetCachedHeroController();
                 if (player == null) return;
 
                 float distance = Vector2.Distance(new Vector2(__instance.transform.position.x, __instance.transform.position.y),
@@ -286,38 +299,40 @@ namespace HealthbarPlugin
                 // 组件会随对象销毁自动清理，无需手动管理
 
 
+                // 优化：减少重复的GetComponent调用和条件判断
                 if (__instance.initHp >= Plugin.BossHealthThreshold.Value)
                 {
                     if (!Plugin.ShowBossHealthBar.Value) return;
                     var healthBar = __instance.gameObject.GetComponent<BossHealthBar>();
-                    if (healthBar == null) healthBar = __instance.gameObject.AddComponent<BossHealthBar>();
+                    if (healthBar == null) 
+                    {
+                        healthBar = __instance.gameObject.AddComponent<BossHealthBar>();
+                    }
+                    
                     if (finalDamage < 0)
                     {
                         healthBar.RecordMaxHealth(__instance.hp);
                     }
+                    
                     // 通知血条组件有伤害发生
-                    if (healthBar != null)
-                    {
-                        healthBar.OnDamageTaken();
-                    }
-
+                    healthBar.OnDamageTaken();
                 }
                 else
                 {
                     if (!Plugin.ShowEnemyHealthBar.Value) return;
-                    var healthBar1 = __instance.gameObject.GetComponent<EnemyHealthBar>();
-                    if (healthBar1 == null) healthBar1 = __instance.gameObject.AddComponent<EnemyHealthBar>();
+                    var healthBar = __instance.gameObject.GetComponent<EnemyHealthBar>();
+                    if (healthBar == null) 
+                    {
+                        healthBar = __instance.gameObject.AddComponent<EnemyHealthBar>();
+                    }
+                    
                     if (finalDamage < 0)
                     {
-                        healthBar1.RecordMaxHealth(__instance.hp);
+                        healthBar.RecordMaxHealth(__instance.hp);
                     }
+                    
                     // 通知血条组件有伤害发生
-
-                    if (healthBar1 != null)
-                    {
-                        healthBar1.OnDamageTaken();
-                    }
-
+                    healthBar.OnDamageTaken();
                 }
 
 
@@ -325,6 +340,21 @@ namespace HealthbarPlugin
                 // 显示伤害文本
                 Vector3 worldPosition = __instance.transform.position;
                 DamageTextManager.Instance.ShowDamageText(worldPosition, finalDamage);
+            }
+            
+            // 获取缓存的HeroController，避免频繁的FindFirstObjectByType调用
+            private static HeroController GetCachedHeroController()
+            {
+                float currentTime = Time.time;
+                
+                // 如果缓存过期或为空，重新获取
+                if (cachedHeroController == null || (currentTime - lastHeroControllerCacheTime) > HERO_CONTROLLER_CACHE_DURATION)
+                {
+                    cachedHeroController = GameObject.FindFirstObjectByType<HeroController>();
+                    lastHeroControllerCacheTime = currentTime;
+                }
+                
+                return cachedHeroController;
             }
         }
     }
@@ -346,10 +376,16 @@ namespace HealthbarPlugin
         private static Dictionary<string, Sprite> textureCache = new Dictionary<string, Sprite>();
         private static string textureFolderPath;
         
+        // 性能优化：缓存管理
+        private static float lastCacheCleanTime = 0f;
+        private static float cacheCleanInterval = 30f; // 30秒清理一次未使用的缓存
+        private static Dictionary<string, float> cacheAccessTime = new Dictionary<string, float>();
+        
         // 材质文件名常量
         private const string ENEMY_TEXTURE_NAME = "HpBar.png";
         private const string BOSS_TEXTURE_NAME = "HpBar_Boss.png";
         private const string BORDER_TEXTURE_NAME = "BG.png";
+        private const string BOSS_BACKGROUND_TEXTURE_NAME = "BG_Boss.png";
         
         /// <summary>
         /// 初始化材质管理器，设置材质文件夹路径
@@ -401,15 +437,18 @@ namespace HealthbarPlugin
         /// <returns>成功返回Sprite，失败返回null</returns>
         public static Sprite GetBossHealthBarTexture()
         {
-
+            // 性能优化：定期清理缓存
+            if (Time.time - lastCacheCleanTime > cacheCleanInterval)
+            {
+                CleanUnusedCache();
+                lastCacheCleanTime = Time.time;
+            }
             
             if (!Plugin.UseCustomTextures.Value)
             {
-
                 return null;
             }
                 
-
             return LoadTexture(BOSS_TEXTURE_NAME);
         }
         
@@ -425,6 +464,7 @@ namespace HealthbarPlugin
                 // 检查缓存
                 if (textureCache.ContainsKey(fileName) && textureCache[fileName] != null)
                 {
+                    cacheAccessTime[fileName] = Time.time; // 更新访问时间
                     return textureCache[fileName];
                 }
                 
@@ -507,6 +547,7 @@ namespace HealthbarPlugin
                 
                 // 添加到缓存
                 textureCache[fileName] = sprite;
+                cacheAccessTime[fileName] = Time.time;
                 
 
                 return sprite;
@@ -562,6 +603,35 @@ namespace HealthbarPlugin
             }
         }
         
+        // 性能优化：清理长时间未使用的缓存
+        private static void CleanUnusedCache()
+        {
+            float currentTime = Time.time;
+            List<string> keysToRemove = new List<string>();
+            
+            foreach (var kvp in cacheAccessTime)
+            {
+                if (currentTime - kvp.Value > 60f) // 60秒未使用的缓存
+                {
+                    keysToRemove.Add(kvp.Key);
+                }
+            }
+            
+            foreach (string key in keysToRemove)
+            {
+                if (textureCache.ContainsKey(key))
+                {
+                    if (textureCache[key] != null && textureCache[key].texture != null)
+                    {
+                        UnityEngine.Object.Destroy(textureCache[key].texture);
+                        UnityEngine.Object.Destroy(textureCache[key]);
+                    }
+                    textureCache.Remove(key);
+                }
+                cacheAccessTime.Remove(key);
+            }
+        }
+        
         /// <summary>
         /// 清理所有缓存的材质
         /// </summary>
@@ -578,6 +648,7 @@ namespace HealthbarPlugin
                     }
                 }
                 textureCache.Clear();
+                cacheAccessTime.Clear();
     
             }
             catch (System.Exception e)
@@ -593,6 +664,20 @@ namespace HealthbarPlugin
         public static Sprite GetBorderTexture()
         {
             return LoadTexture(BORDER_TEXTURE_NAME);
+        }
+        
+        /// <summary>
+        /// 获取BOSS血条背景材质
+        /// </summary>
+        /// <returns>成功返回Sprite，失败返回null</returns>
+        public static Sprite GetBossBackgroundTexture()
+        {
+            if (!Plugin.UseCustomBossBackground.Value)
+            {
+                return null;
+            }
+                
+            return LoadTexture(BOSS_BACKGROUND_TEXTURE_NAME);
         }
         
         /// <summary>
