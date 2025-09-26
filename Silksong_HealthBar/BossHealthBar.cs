@@ -215,6 +215,15 @@ namespace HealthbarPlugin
                     }
                 }
             }
+
+            //苍白之母的特殊机制:满血不显示血条
+            if (gameObject.name == "Silk Boss")
+            {
+                if(currentHp ==100 && maxHpEverReached==100)
+                {
+                    HideBossHealthBar();
+                }
+            }
         }
         
         private void CreateBossHealthBarUI()
