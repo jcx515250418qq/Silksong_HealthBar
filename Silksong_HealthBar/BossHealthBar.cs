@@ -131,7 +131,13 @@ namespace HealthbarPlugin
                 HideBossHealthBar();
                 return;
             }
-            
+            // 检查BOSS是否死亡（血量为0时隐藏血条）
+            if (healthManager.hp <= 0)
+            {
+                HideBossHealthBar();
+                return;
+            }
+
             // 延迟获取player引用，避免Start时的性能问题
             if (player == null)
             {
@@ -144,7 +150,9 @@ namespace HealthbarPlugin
             
             // 检查血量变化
             if (currentHp != healthManager.hp)
-            {
+            {  
+              
+
                 int previousHp = currentHp;
                 currentHp = healthManager.hp;
                 
@@ -215,7 +223,7 @@ namespace HealthbarPlugin
                     }
                 }
             }
-
+          
             //苍白之母的特殊机制:满血不显示血条
             if (gameObject.name == "Silk Boss")
             {
